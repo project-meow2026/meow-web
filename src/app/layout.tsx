@@ -44,6 +44,61 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var p = window.location.pathname;
+                  if (p !== '/' && p !== '') return;
+                  var isReload = false;
+                  if (window.performance) {
+                    var nav = window.performance.getEntriesByType && window.performance.getEntriesByType('navigation')[0];
+                    if (nav && nav.type === 'reload') isReload = true;
+                    else if (window.performance.navigation && window.performance.navigation.type === 1) isReload = true;
+                  }
+                  var seen = false;
+                  try {
+                    seen = sessionStorage.getItem('meow_preloader_seen') === 'true';
+                  } catch(e) {}
+                  if (!isReload && !seen) {
+                    document.documentElement.classList.add('meow-preloading');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html.meow-preloading {
+                background-color: #000000 !important;
+                overflow: hidden !important;
+              }
+              html.meow-preloading body {
+                background-color: #000000 !important;
+              }
+              /* Hide website completely when opening fresh so it NEVER blinks or shows first */
+              html.meow-preloading #meow-website-root {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+              }
+              /* Show preloader video immediately from frame 0 */
+              html.meow-preloading #meow-preloader-root {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+              }
+              #meow-preloader-root {
+                display: none;
+              }
+            `,
+          }}
+        />
+      </head>
       <body className="bg-white text-meow-dark antialiased min-h-screen flex flex-col selection:bg-meow-dark selection:text-white">
         <CartProvider>
           <WishlistProvider>

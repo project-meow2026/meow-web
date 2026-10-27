@@ -45,24 +45,17 @@ export default function AdminHeroPage() {
     setUploadProgress(15);
 
     try {
-      // 1. Direct local upload to /api/upload-video (writes to public/videos/ and updates Supabase)
-      const localFormData = new FormData();
-      localFormData.append('file', file);
-      localFormData.append('type', type);
-
-      setUploadProgress(45);
-      const res = await fetch('/api/upload-video', {
-        method: 'POST',
-        body: localFormData,
+      // Direct client-side secure upload to Cloudinary CDN
+      const folder = type === 'desktop' ? 'meow/hero/desktop' : 'meow/hero/mobile';
+      const cRes = await uploadMediaToCloudinary(file, folder, (percent) => {
+        setUploadProgress(percent);
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.url) {
-        throw new Error(data.error || 'Failed to save video to server');
+      if (!cRes?.url) {
+        throw new Error('Failed to upload video to Cloudinary');
       }
 
-      setUploadProgress(90);
-      const videoUrl = data.url;
+      const videoUrl = cRes.url;
 
       const updated: HeroBanner = {
         ...hero,
@@ -73,24 +66,7 @@ export default function AdminHeroPage() {
       // Ensure local state and Supabase are in sync
       await dbService.saveHeroBanner(updated);
 
-      // 2. Also back up to Cloudinary in the background if configured
-      try {
-        const folder = type === 'desktop' ? 'meow/hero/desktop' : 'meow/hero/mobile';
-        uploadMediaToCloudinary(file, folder as any)
-          .then(async (cRes) => {
-            if (cRes?.url) {
-              const cloudUpdated = {
-                ...updated,
-                [type === 'desktop' ? 'desktop_video_url' : 'mobile_video_url']: cRes.url,
-              };
-              setHero(cloudUpdated);
-              await dbService.saveHeroBanner(cloudUpdated);
-            }
-          })
-          .catch((cErr) => console.warn('Cloudinary background backup info:', cErr));
-      } catch (_) {}
-
-      setToastMsg(`Video uploaded successfully! Now streaming on homepage.`);
+      setToastMsg(`Video uploaded to Cloudinary successfully! Now streaming on homepage.`);
       setTimeout(() => setToastMsg(''), 5000);
     } catch (err: any) {
       alert(`Video upload error: ${err.message || 'Error uploading video'}`);
@@ -408,6 +384,17 @@ export default function AdminHeroPage() {
                   className="px-3.5 py-2 bg-meow-dark text-white text-xs font-semibold rounded hover:bg-meow-dark/85 shrink-0"
                 >
                   Apply &amp; Save
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] pt-1">
+                <span className="text-meow-subtle">Authentic 3D Footwear Film:</span>
+                <button
+                  type="button"
+                  onClick={() => handleApplyVideoUrl('desktop', 'https://res.cloudinary.com/k7t4skr1/video/upload/v1793007834/meow/hero/desktop/qlqsgtcvyihqq2bsnu0s.mp4')}
+                  className="text-meow-terracotta hover:underline font-semibold"
+                >
+                  Restore Original Hero Video
                 </button>
               </div>
             </div>

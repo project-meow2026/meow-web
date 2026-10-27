@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PreloadVideoSetting } from '@/lib/supabase/types';
-import { INITIAL_PRELOAD_VIDEO } from '@/lib/storage/db';
 
 interface PreloaderVideoModalProps {
   setting?: PreloadVideoSetting | null;
@@ -10,99 +9,121 @@ interface PreloaderVideoModalProps {
   onFinish?: () => void;
 }
 
-// Module-level flag so navigating between pages inside the site (e.g. /shop -> /) does not replay
-let hasShownInCurrentSpaSession = false;
-
 export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
   setting,
   forceShow = false,
   onFinish,
 }) => {
-  const isExplicitlyDisabled = setting?.is_enabled === false && !forceShow;
-
-  const [shouldRender, setShouldRender] = useState(() => {
-    if (forceShow) return true;
-    if (isExplicitlyDisabled) return false;
-    return !hasShownInCurrentSpaSession;
+  // Synchronous resolution of video URL from props or localStorage to eliminate any delay
+  const rawPropUrl = setting?.video_url?.trim() || '';
+  const [cachedUrl] = useState(() => {
+    if (rawPropUrl) return rawPropUrl;
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('meow_db_preload_video_v2');
+        return raw ? JSON.parse(raw)?.video_url?.trim() || '' : '';
+      } catch (_) {}
+    }
+    return '';
   });
 
+  const effectiveVideoUrl = rawPropUrl || cachedUrl;
+  const isEnabled = setting?.is_enabled !== false;
+
   const [fadeOut, setFadeOut] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const isDismissedRef = useRef(false);
 
-  const videoUrl = setting?.video_url || INITIAL_PRELOAD_VIDEO.video_url;
-
-  // Dismiss preloader cleanly and reveal the website
+  // Smooth transition to website
   const dismiss = useCallback(() => {
     if (isDismissedRef.current) return;
     isDismissedRef.current = true;
-    hasShownInCurrentSpaSession = true;
 
-    // Start smooth fade-out to reveal the website underneath
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('meow_preloader_seen', 'true');
+        document.documentElement.classList.remove('meow-preloading');
+      }
+    } catch (_) {}
+
+    // Elegant fade out transition to seamlessly reveal the website
     setFadeOut(true);
 
-    // Completely unmount the preloader overlay after transition
     setTimeout(() => {
-      setShouldRender(false);
+      setIsDismissed(true);
       onFinish?.();
-    }, 450);
+    }, 800);
   }, [onFinish]);
 
-  // Handle external setting updates or forceShow
+  // Handle client mount and playback
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     if (forceShow) {
       isDismissedRef.current = false;
-      setShouldRender(true);
       setFadeOut(false);
+      setIsDismissed(false);
+      document.documentElement.classList.add('meow-preloading');
+      const v = videoRef.current;
+      if (v) {
+        v.currentTime = 0;
+        v.play().catch(() => {});
+      }
       return;
     }
 
-    if (setting?.is_enabled === false) {
-      dismiss();
+    // Check if the head script determined we should show the preloader
+    const isPreloadActive = document.documentElement.classList.contains('meow-preloading');
+    if (!isPreloadActive || !isEnabled || !effectiveVideoUrl) {
+      isDismissedRef.current = true;
+      setIsDismissed(true);
+      document.documentElement.classList.remove('meow-preloading');
+      return;
     }
-  }, [setting, forceShow, dismiss]);
 
-  // Autoplay video on mount + absolute fallback timer (max 4.5 seconds)
-  useEffect(() => {
-    if (!shouldRender || fadeOut) return;
-
+    // If preloading is active, play video
     const v = videoRef.current;
     if (v) {
       v.muted = true;
       v.defaultMuted = true;
       v.playsInline = true;
-      v.play().catch(() => {
-        // Autoplay policy fallback: dismiss on first user interaction
-        const handleInteraction = () => dismiss();
-        window.addEventListener('click', handleInteraction, { once: true });
-        window.addEventListener('touchstart', handleInteraction, { once: true });
-      });
+      const p = v.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          // If browser policy blocks autoplay without interaction
+          const handleFirstClick = () => {
+            v.play().catch(() => dismiss());
+          };
+          window.addEventListener('click', handleFirstClick, { once: true });
+          window.addEventListener('touchstart', handleFirstClick, { once: true });
+        });
+      }
     }
 
-    // Absolute fallback: NEVER hold visitor for more than 4.5 seconds
-    const maxTimer = setTimeout(() => {
+    const safetyTimer = setTimeout(() => {
       dismiss();
-    }, 4500);
+    }, 15000);
 
-    return () => clearTimeout(maxTimer);
-  }, [shouldRender, fadeOut, dismiss]);
+    return () => clearTimeout(safetyTimer);
+  }, [forceShow, isEnabled, effectiveVideoUrl, dismiss]);
 
-  if (!shouldRender) return null;
+  if (isDismissed && !forceShow) return null;
+  if (!effectiveVideoUrl) return null;
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden transition-opacity duration-500 ease-out select-none cursor-pointer ${
+      id="meow-preloader-root"
+      className={`fixed inset-0 z-[999999] bg-black items-center justify-center overflow-hidden transition-opacity duration-800 ease-in-out select-none ${
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
-      onClick={dismiss}
-      onTouchStart={dismiss}
       aria-hidden="true"
     >
-      {/* Pure Fullscreen Video without any texts, skip, or buttons */}
+      {/* Fullscreen Video playing fully from start to finish */}
       <video
         ref={videoRef}
-        key={videoUrl}
-        src={videoUrl}
+        key={effectiveVideoUrl}
+        src={effectiveVideoUrl}
         autoPlay
         muted
         playsInline
@@ -110,22 +131,6 @@ export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
         preload="auto"
         onEnded={dismiss}
         onError={dismiss}
-        onLoadedMetadata={(e) => {
-          const d = e.currentTarget.duration;
-          if (d && isFinite(d) && d > 0) {
-            // Dismiss slightly before end to avoid showing any black freeze-frame
-            const dismissMs = Math.max(1000, Math.min(4500, (d - 0.25) * 1000));
-            setTimeout(() => {
-              dismiss();
-            }, dismissMs);
-          }
-        }}
-        onTimeUpdate={(e) => {
-          const v = e.currentTarget;
-          if (v.duration && v.currentTime >= v.duration - 0.3) {
-            dismiss();
-          }
-        }}
         className="w-full h-full object-cover object-center pointer-events-none"
       />
     </div>

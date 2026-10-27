@@ -110,7 +110,6 @@ export default function NewProductPage() {
       });
 
       router.push('/admin/products');
-      router.refresh();
     } catch (err: any) {
       alert(`Save error: ${err.message}`);
     } finally {

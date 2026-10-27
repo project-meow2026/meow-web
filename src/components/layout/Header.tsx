@@ -39,33 +39,33 @@ export const Header: React.FC = () => {
       <header
         className={`sticky top-0 z-40 w-full transition-all duration-300 ${
           isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-meow-border'
-            : 'bg-white border-b border-meow-border/60'
+            ? 'bg-white shadow-sm border-b border-meow-border'
+            : 'bg-white/70 backdrop-blur-md border-b border-black/5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-18 sm:h-20">
-            {/* Mobile menu button */}
-            <div className="flex items-center md:hidden">
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen(true)}
-                className="p-2 -ml-2 text-meow-dark hover:opacity-75 focus:outline-none"
-                aria-label="Open navigation menu"
-              >
-                <Menu className="w-6 h-6 stroke-[1.5]" />
-              </button>
-            </div>
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            {/* Left: Mobile menu button & Brand Logo */}
+            <div className="flex items-center gap-1 sm:gap-3">
+              <div className="flex items-center md:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  className="p-1.5 -ml-1 text-meow-dark hover:opacity-75 focus:outline-none flex items-center justify-center"
+                  aria-label="Open navigation menu"
+                >
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6 stroke-[1.5]" />
+                </button>
+              </div>
 
-            {/* Brand Logo - MEOW */}
-            <div className="flex items-center">
+              {/* Brand Logo - MEOW */}
               <Link href="/" className="group flex items-center">
                 <Image
                   src="/logo.png"
                   alt="MEOW"
-                  width={140}
-                  height={42}
-                  className="h-7 sm:h-8 w-auto object-contain transition-opacity group-hover:opacity-85"
+                  width={130}
+                  height={38}
+                  className="h-6 sm:h-8 w-auto object-contain transition-opacity group-hover:opacity-85"
                   priority
                 />
               </Link>
@@ -90,25 +90,25 @@ export const Header: React.FC = () => {
             </nav>
 
             {/* Action Icons */}
-            <div className="flex items-center space-x-3 sm:space-x-5">
+            <div className="flex items-center gap-1 sm:gap-3">
               {/* Search Toggle */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 text-meow-dark hover:opacity-70 transition-opacity"
+                className="p-1.5 sm:p-2 text-meow-dark hover:opacity-70 transition-opacity flex items-center justify-center"
                 aria-label="Search products"
               >
-                <Search className="w-5 h-5 stroke-[1.5]" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
               </button>
 
               {/* Wishlist Link */}
               <Link
                 href="/shop?filter=wishlist"
-                className="p-2 text-meow-dark hover:opacity-70 transition-opacity relative hidden sm:block"
+                className="p-1.5 sm:p-2 text-meow-dark hover:opacity-70 transition-opacity relative hidden sm:flex items-center justify-center"
                 aria-label="View wishlist"
               >
-                <Heart className="w-5 h-5 stroke-[1.5]" />
+                <Heart className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
                 {wishlistCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-meow-dark text-white text-[10px] rounded-full flex items-center justify-center font-medium">
+                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-meow-dark text-white text-[10px] rounded-full flex items-center justify-center font-medium">
                     {wishlistCount}
                   </span>
                 )}
@@ -117,22 +117,22 @@ export const Header: React.FC = () => {
               {/* Admin Portal Shortcut */}
               <Link
                 href="/admin"
-                className="p-2 text-meow-dark hover:opacity-70 transition-opacity"
+                className="p-1.5 sm:p-2 text-meow-dark hover:opacity-70 transition-opacity flex items-center justify-center"
                 title="Admin Dashboard CMS"
                 aria-label="Admin Dashboard"
               >
-                <User className="w-5 h-5 stroke-[1.5]" />
+                <User className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
               </Link>
 
               {/* Shopping Cart Drawer Trigger */}
               <button
                 onClick={openCart}
-                className="p-2 text-meow-dark hover:opacity-70 transition-opacity relative"
+                className="p-1.5 sm:p-2 text-meow-dark hover:opacity-70 transition-opacity relative flex items-center justify-center"
                 aria-label="View shopping cart"
               >
-                <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
                 {itemCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-meow-dark text-white text-[10px] rounded-full flex items-center justify-center font-medium">
+                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-meow-dark text-white text-[9px] sm:text-[10px] rounded-full flex items-center justify-center font-medium">
                     {itemCount}
                   </span>
                 )}

@@ -28,13 +28,14 @@ export async function GET() {
       : null;
 
     if (data) {
-      // Purge any legacy mock media from the database row immediately
+      // Purge any legacy mock media or mistakenly assigned preloader video from hero banner
       const hasMockVideo = data.desktop_video_url?.includes('mixkit.co') || data.mobile_video_url?.includes('mixkit.co');
+      const hasPreloaderVideo = data.desktop_video_url?.includes('1793086833851');
       const hasMockPoster = data.poster_image_url?.includes('unsplash.com');
 
-      if (hasMockVideo || hasMockPoster) {
+      if (hasMockVideo || hasMockPoster || hasPreloaderVideo) {
         const cleanPayload = {
-          desktop_video_url: hasMockVideo ? CLOUDINARY_HERO_VIDEO : data.desktop_video_url,
+          desktop_video_url: (hasMockVideo || hasPreloaderVideo) ? CLOUDINARY_HERO_VIDEO : data.desktop_video_url,
           mobile_video_url: hasMockVideo ? null : data.mobile_video_url,
           poster_image_url: hasMockPoster ? null : data.poster_image_url,
         };
@@ -117,6 +118,15 @@ export async function POST(req: NextRequest) {
       }
       result = data;
     }
+
+    // Write to persistent disk backup
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const settingsDir = path.join(process.cwd(), 'public', 'settings');
+      await fs.mkdir(settingsDir, { recursive: true });
+      await fs.writeFile(path.join(settingsDir, 'hero.json'), JSON.stringify(result, null, 2), 'utf-8');
+    } catch (_) {}
 
     return NextResponse.json({ success: true, hero: result });
   } catch (error: any) {

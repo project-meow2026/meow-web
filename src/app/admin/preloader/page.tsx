@@ -6,6 +6,7 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { dbService, INITIAL_PRELOAD_VIDEO } from '@/lib/storage/db';
 import { PreloadVideoSetting } from '@/lib/supabase/types';
 import { PreloaderVideoModal } from '@/components/home/PreloaderVideoModal';
+import { uploadMediaToCloudinary } from '@/lib/cloudinary/upload';
 
 export default function AdminPreloaderPage() {
   const [setting, setSetting] = useState<PreloadVideoSetting>(INITIAL_PRELOAD_VIDEO);
@@ -13,6 +14,7 @@ export default function AdminPreloaderPage() {
   const [saving, setSaving] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -40,6 +42,9 @@ export default function AdminPreloaderPage() {
     try {
       const saved = await dbService.savePreloadVideo(setting);
       setSetting(saved);
+      try {
+        sessionStorage.removeItem('meow_preloader_seen');
+      } catch (_) {}
       setToastMsg('Preloading intro video settings saved successfully!');
       setTimeout(() => setToastMsg(''), 4000);
     } catch (err) {
@@ -55,34 +60,34 @@ export default function AdminPreloaderPage() {
     if (!file) return;
 
     setUploading(true);
+    setUploadProgress(10);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'desktop');
-
-      // Upload via video endpoint
-      const res = await fetch('/api/upload-video', {
-        method: 'POST',
-        body: formData,
+      // Direct client-side secure upload to Cloudinary (folder: meow/preloader)
+      const res = await uploadMediaToCloudinary(file, 'meow/preloader', (percent) => {
+        setUploadProgress(percent);
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.url) {
-        throw new Error(data.error || 'Failed to upload video');
+      if (!res?.url) {
+        throw new Error('Failed to upload video to Cloudinary');
       }
 
-      setSetting((prev) => ({
-        ...prev,
-        video_url: data.url,
-      }));
+      const updated: PreloadVideoSetting = {
+        ...setting,
+        video_url: res.url,
+      };
 
-      setToastMsg('Video uploaded successfully!');
-      setTimeout(() => setToastMsg(''), 3000);
+      setSetting(updated);
+      await dbService.savePreloadVideo(updated);
+
+      setToastMsg('Preloader video uploaded to Cloudinary & saved successfully!');
+      setTimeout(() => setToastMsg(''), 4000);
     } catch (err: any) {
-      console.error('Video upload error:', err);
+      console.error('Cloudinary video upload error:', err);
       alert(`Upload error: ${err.message || 'Failed to upload video'}`);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -170,14 +175,14 @@ export default function AdminPreloaderPage() {
       <form onSubmit={handleSave} className="space-y-8">
         {/* Section 1: Activation & Visibility */}
         <div className="bg-white border border-meow-border rounded-xl p-6 sm:p-8 space-y-6 shadow-sm">
-          <div className="flex items-center justify-between pb-6 border-b border-meow-border">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-meow-dark" />
                 <span>Preloader Status</span>
               </h2>
               <p className="text-xs text-meow-muted mt-1">
-                When enabled, the video will play once when a customer opens the store, stored in session storage.
+                When enabled, the intro video will play automatically when visitors open the website.
               </p>
             </div>
 
@@ -186,27 +191,6 @@ export default function AdminPreloaderPage() {
                 type="checkbox"
                 checked={setting.is_enabled}
                 onChange={(e) => setSetting({ ...setting, is_enabled: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-meow-dark"></div>
-            </label>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-meow-dark block">
-                Auto-Close on Video End
-              </span>
-              <p className="text-xs text-meow-muted mt-0.5">
-                Automatically transition to the homepage when the video finishes playing.
-              </p>
-            </div>
-
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={setting.auto_close_on_end !== false}
-                onChange={(e) => setSetting({ ...setting, auto_close_on_end: e.target.checked })}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-meow-dark"></div>
@@ -252,10 +236,10 @@ export default function AdminPreloaderPage() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="flex items-center gap-2 px-4 py-2 bg-meow-surface border border-meow-border rounded text-xs font-semibold text-meow-dark hover:bg-white transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-meow-dark text-white rounded text-xs font-semibold hover:bg-meow-dark/85 transition-colors disabled:opacity-50"
               >
                 <Upload className="w-3.5 h-3.5" />
-                <span>{uploading ? 'Uploading...' : 'Upload Video'}</span>
+                <span>{uploading ? `Uploading to Cloudinary (${uploadProgress}%)...` : 'Upload Video to Cloudinary'}</span>
               </button>
             </div>
           </div>
@@ -313,72 +297,7 @@ export default function AdminPreloaderPage() {
           </div>
         </div>
 
-        {/* Section 3: Overlay Copy & Text Customization */}
-        <div className="bg-white border border-meow-border rounded-xl p-6 sm:p-8 space-y-6 shadow-sm">
-          <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-meow-dark" />
-              <span>Intro Text & Labels</span>
-            </h2>
-            <p className="text-xs text-meow-muted mt-1">
-              Customize the editorial badge, headline, and button text displayed over the preloading video.
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-meow-dark">
-                Top Badge Text
-              </label>
-              <input
-                type="text"
-                value={setting.badge || ''}
-                onChange={(e) => setSetting({ ...setting, badge: e.target.value })}
-                placeholder="MEOW FOOTWEAR"
-                className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border bg-white outline-none focus:border-meow-dark"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-meow-dark">
-                Skip Button Label
-              </label>
-              <input
-                type="text"
-                value={setting.skip_button_text || ''}
-                onChange={(e) => setSetting({ ...setting, skip_button_text: e.target.value })}
-                placeholder="Skip Intro"
-                className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border bg-white outline-none focus:border-meow-dark"
-              />
-            </div>
-
-            <div className="md:col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-meow-dark">
-                Main Headline
-              </label>
-              <input
-                type="text"
-                value={setting.title || ''}
-                onChange={(e) => setSetting({ ...setting, title: e.target.value })}
-                placeholder="THE ART OF DRESSING WELL"
-                className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border bg-white outline-none focus:border-meow-dark font-editorial text-sm font-medium"
-              />
-            </div>
-
-            <div className="md:col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-meow-dark">
-                Subtitle / Philosophy Note
-              </label>
-              <input
-                type="text"
-                value={setting.subtitle || ''}
-                onChange={(e) => setSetting({ ...setting, subtitle: e.target.value })}
-                placeholder="Quiet confidence. Timeless comfort."
-                className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border bg-white outline-none focus:border-meow-dark"
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Bottom Save Button Bar */}
         <div className="flex items-center justify-end gap-3 pt-4">
