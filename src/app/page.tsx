@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { dbService, INITIAL_HERO_BANNER } from '@/lib/storage/db';
+import { dbService, INITIAL_HERO_BANNER, INITIAL_PRELOAD_VIDEO } from '@/lib/storage/db';
 import { Category, Product, HeroBanner, PreloadVideoSetting } from '@/lib/supabase/types';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -17,7 +17,7 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [heroBanner, setHeroBanner] = useState<HeroBanner>(INITIAL_HERO_BANNER);
-  const [preloadVideo, setPreloadVideo] = useState<PreloadVideoSetting | null>(null);
+  const [preloadVideo, setPreloadVideo] = useState<PreloadVideoSetting>(INITIAL_PRELOAD_VIDEO);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

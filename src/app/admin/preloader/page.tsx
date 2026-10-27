@@ -238,7 +238,6 @@ export default function AdminPreloaderPage() {
                 onChange={(e) => setSetting({ ...setting, video_url: e.target.value })}
                 placeholder="https://res.cloudinary.com/.../intro.mp4"
                 className="flex-1 text-xs px-3.5 py-2.5 rounded border border-meow-border bg-white outline-none focus:border-meow-dark"
-                required
               />
 
               <input

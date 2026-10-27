@@ -3,6 +3,8 @@ import { dbService } from '@/lib/storage/db';
 import { generateOrderRef } from '@/lib/utils/formatters';
 import { buildWhatsAppOrderMessage, getWhatsAppRedirectUrl } from '@/lib/utils/whatsapp';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Layers, Play, Pause, RefreshCw, Eye, Sparkles } from 'lucide-react';
+import { Layers, RefreshCw, Eye, Sparkles, Film } from 'lucide-react';
 
 interface ExplodedFootwearViewerProps {
   desktopVideoUrl?: string | null;
@@ -20,7 +20,6 @@ export const ExplodedFootwearViewer: React.FC<ExplodedFootwearViewerProps> = ({
   const [explosionProgress, setExplosionProgress] = useState(0); // 0 (assembled) to 100 (fully exploded)
   const [isAutoExploding, setIsAutoExploding] = useState(true);
   const [activeLayer, setActiveLayer] = useState<number | null>(null);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Layers data for exploded view
@@ -93,16 +92,7 @@ export const ExplodedFootwearViewer: React.FC<ExplodedFootwearViewerProps> = ({
     return () => clearInterval(interval);
   }, [isAutoExploding, viewMode]);
 
-  const toggleVideoPlayback = () => {
-    if (!videoRef.current) return;
-    if (isVideoPlaying) {
-      videoRef.current.pause();
-      setIsVideoPlaying(false);
-    } else {
-      videoRef.current.play();
-      setIsVideoPlaying(true);
-    }
-  };
+
 
   return (
     <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] lg:aspect-[21/11] bg-gradient-to-b from-[#F9F8F6] to-[#ECE8E1] rounded-2xl overflow-hidden border border-meow-border flex items-center justify-center select-none shadow-sm">
@@ -136,7 +126,7 @@ export const ExplodedFootwearViewer: React.FC<ExplodedFootwearViewerProps> = ({
               }`}
             >
               <span className="flex items-center gap-1.5">
-                <Play className="w-3.5 h-3.5" />
+                <Film className="w-3.5 h-3.5" />
                 <span>3D Film</span>
               </span>
             </button>
@@ -330,17 +320,9 @@ export const ExplodedFootwearViewer: React.FC<ExplodedFootwearViewerProps> = ({
             muted
             loop
             playsInline
+            controls={false}
             className="w-full h-full object-cover object-center"
           />
-
-          {/* Play/Pause Overlay Control */}
-          <button
-            onClick={toggleVideoPlayback}
-            className="absolute bottom-4 right-4 p-3 bg-white/80 backdrop-blur-md rounded-full text-meow-dark hover:bg-white shadow-md transition-transform hover:scale-110"
-            aria-label={isVideoPlaying ? 'Pause video' : 'Play video'}
-          >
-            {isVideoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-          </button>
         </div>
       )}
     </div>

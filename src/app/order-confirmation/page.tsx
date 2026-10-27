@@ -19,7 +19,7 @@ import { Order } from '@/lib/supabase/types';
 import { formatPrice } from '@/lib/utils/formatters';
 import { getWhatsAppRedirectUrl } from '@/lib/utils/whatsapp';
 
-export default function OrderConfirmationPage() {
+function OrderConfirmationContent() {
   const searchParams = useSearchParams();
   const orderRef = searchParams.get('ref');
 
@@ -167,5 +167,26 @@ export default function OrderConfirmationPage() {
 
       <Footer />
     </>
+  );
+}
+
+export const dynamic = 'force-dynamic';
+
+export default function OrderConfirmationPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <>
+          <Header />
+          <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+            <div className="w-8 h-8 border-2 border-meow-dark border-t-transparent rounded-full animate-spin mb-3" />
+            <p className="text-xs uppercase tracking-widest text-meow-muted">Loading order confirmation...</p>
+          </div>
+          <Footer />
+        </>
+      }
+    >
+      <OrderConfirmationContent />
+    </React.Suspense>
   );
 }
