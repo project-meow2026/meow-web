@@ -3,6 +3,8 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import fs from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();

@@ -11,7 +11,7 @@ import { MobileFilterModal } from '@/components/shop/MobileFilterModal';
 import { dbService } from '@/lib/storage/db';
 import { Product, Category } from '@/lib/supabase/types';
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   const searchParam = searchParams.get('q');
@@ -307,5 +307,26 @@ export default function ShopPage() {
 
       <Footer />
     </>
+  );
+}
+
+export const dynamic = 'force-dynamic';
+
+export default function ShopPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <>
+          <Header />
+          <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+            <div className="w-8 h-8 border-2 border-meow-dark border-t-transparent rounded-full animate-spin mb-3" />
+            <p className="text-xs uppercase tracking-widest text-meow-muted">Loading footwear collection...</p>
+          </div>
+          <Footer />
+        </>
+      }
+    >
+      <ShopContent />
+    </React.Suspense>
   );
 }

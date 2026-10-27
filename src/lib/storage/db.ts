@@ -129,10 +129,6 @@ export const INITIAL_ABOUT_SECTION: AboutSection = {
 export const INITIAL_PRELOAD_VIDEO: PreloadVideoSetting = {
   is_enabled: true,
   video_url: 'https://res.cloudinary.com/k7t4skr1/video/upload/v1793007834/meow/hero/desktop/qlqsgtcvyihqq2bsnu0s.mp4',
-  badge: 'MEOW FOOTWEAR',
-  title: 'THE ART OF DRESSING WELL',
-  subtitle: 'Quiet confidence. Timeless comfort.',
-  skip_button_text: 'Skip Intro',
   auto_close_on_end: true,
 };
 

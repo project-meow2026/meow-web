@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Sparkles, Play, Pause } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { HeroBanner } from '@/lib/supabase/types';
 
 interface HeroSectionProps {
@@ -10,7 +10,6 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const GEMINI_HERO_VIDEO = 'https://res.cloudinary.com/k7t4skr1/video/upload/v1793007834/meow/hero/desktop/qlqsgtcvyihqq2bsnu0s.mp4';
@@ -30,14 +29,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
         video.muted = true;
         const promise = video.play();
         if (promise !== undefined) {
-          promise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch(() => {
-              // Autoplay blocked by browser policy until user interacts
-              setIsPlaying(false);
-            });
+          promise.catch(() => {
+            // Autoplay blocked by browser policy until user interacts
+          });
         }
       };
 
@@ -51,19 +45,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
       };
     }
   }, [videoUrl]);
-
-  const toggleVideo = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (!video.paused) {
-      video.pause();
-      setIsPlaying(false);
-    } else {
-      video.muted = true;
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
-    }
-  };
 
   return (
     <section className="relative w-full h-[75vh] sm:h-[90vh] lg:h-[95vh] min-h-[460px] sm:min-h-[580px] max-h-[1080px] overflow-hidden bg-black flex items-center">
@@ -87,8 +68,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
           controls={false}
           preload="auto"
           className="w-full h-full object-cover object-center scale-[0.88] sm:scale-[1.02] origin-center transition-transform duration-700"
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
         >
           <source src={videoUrl} type="video/mp4" />
           <source src={videoUrl} type="video/webm" />
@@ -136,28 +115,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
             </Link>
           </div>
         </div>
-      </div>
-
-      {/* Floating Video Controls in Bottom Right */}
-      <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 z-30 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={toggleVideo}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs uppercase tracking-widest font-medium transition-all shadow-lg hover:scale-105"
-          aria-label={isPlaying ? 'Pause video' : 'Play video'}
-        >
-          {isPlaying ? (
-            <>
-              <Pause className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Pause</span>
-            </>
-          ) : (
-            <>
-              <Play className="w-3.5 h-3.5 fill-white" />
-              <span className="hidden sm:inline">Play</span>
-            </>
-          )}
-        </button>
       </div>
 
       {/* Subtle Scroll Hint */}
