@@ -74,11 +74,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               html.meow-preloading {
-                background-color: #000000 !important;
+                background-color: #FFFFFF !important;
                 overflow: hidden !important;
               }
               html.meow-preloading body {
-                background-color: #000000 !important;
+                background-color: #FFFFFF !important;
               }
               /* Hide website completely when opening fresh so it NEVER blinks or shows first */
               html.meow-preloading #meow-website-root {

@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { HeroBanner } from '@/lib/supabase/types';
 
 interface HeroSectionProps {
@@ -82,8 +82,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
       <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-10 sm:py-16">
         <div className="max-w-2xl sm:max-w-3xl space-y-4 sm:space-y-8 animate-fade-in-up">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.25em]">
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-meow-terracotta" />
+          <div className="inline-flex items-center px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.25em]">
             <span>{banner.badge || 'SPRING / SUMMER'}</span>
           </div>
 

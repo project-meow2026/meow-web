@@ -114,12 +114,12 @@ export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
   return (
     <div
       id="meow-preloader-root"
-      className={`fixed inset-0 z-[999999] bg-black items-center justify-center overflow-hidden transition-opacity duration-800 ease-in-out select-none ${
+      className={`fixed inset-0 z-[999999] bg-white items-center justify-center overflow-hidden transition-opacity duration-800 ease-in-out select-none ${
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       aria-hidden="true"
     >
-      {/* Fullscreen Video playing fully from start to finish */}
+      {/* Fullscreen Video playing fully from start to finish - Zoomed out on mobile so the whole sandal is visible, blank space filled with white */}
       <video
         ref={videoRef}
         key={effectiveVideoUrl}
@@ -131,7 +131,7 @@ export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
         preload="auto"
         onEnded={dismiss}
         onError={dismiss}
-        className="w-full h-full object-cover object-center pointer-events-none"
+        className="w-full h-full object-contain object-center pointer-events-none max-w-full max-h-screen bg-white"
       />
     </div>
   );
