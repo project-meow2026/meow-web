@@ -19,6 +19,14 @@ export const metadata: Metadata = {
     'kids footwear',
   ],
   authors: [{ name: 'MEOW Footwear' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
   openGraph: {
     title: 'MEOW — The Art of Dressing Well',
     description: 'Quiet confidence. Timeless comfort. Handcrafted minimalist footwear.',

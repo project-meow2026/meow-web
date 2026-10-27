@@ -36,14 +36,14 @@ export const BestSellersSection: React.FC<BestSellersSectionProps> = ({ products
           </Link>
         </div>
 
-        {/* Grid with Editorial Promo Banner as in Reference PDF */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Grid with Editorial Promo Banner */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {displayProducts.slice(0, 3).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
 
-          {/* Editorial Banner Card matching PDF page 2 */}
-          <div className="relative rounded-lg overflow-hidden border border-meow-border bg-[#1A1918] p-6 sm:p-8 flex flex-col justify-between min-h-[360px] group shadow-sm">
+          {/* Editorial Banner Card matching brand aesthetics */}
+          <div className="col-span-2 sm:col-span-1 lg:col-span-1 relative rounded-lg overflow-hidden border border-meow-border bg-[#1A1918] p-4 sm:p-8 flex flex-col justify-between min-h-[220px] sm:min-h-[360px] group shadow-sm">
             {/* Subtle luxury ambient texture */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.06),transparent_60%)] pointer-events-none" />
             <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none" />

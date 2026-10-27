@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Save, Check, Video, Play, Pause, RefreshCw, Upload, Eye, Trash2, ArrowUpRight } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { ImageUploader } from '@/components/admin/ImageUploader';
@@ -186,6 +187,29 @@ export default function AdminHeroPage() {
           </a>
         }
       />
+
+      {/* Preloading Intro Video Notice Banner */}
+      <div className="mb-6 p-4 bg-[#F7F6F2] border border-meow-border rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-lg bg-white border border-meow-border text-meow-dark flex-shrink-0">
+            <Video className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-meow-dark">
+              Preloading Intro Video Section
+            </h4>
+            <p className="text-xs text-meow-muted mt-0.5">
+              Looking to configure the full-screen video that plays once when visitors first open the site?
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/admin/preloader"
+          className="flex-shrink-0 px-4 py-2 bg-meow-dark text-white rounded text-xs uppercase tracking-wider font-semibold hover:bg-meow-dark/85 transition-colors"
+        >
+          Manage Preload Video
+        </Link>
+      </div>
 
       {toastMsg && (
         <div className="mb-6 p-3 bg-green-50 border border-green-200 text-green-800 text-xs rounded flex items-center gap-2 animate-fade-in-up">

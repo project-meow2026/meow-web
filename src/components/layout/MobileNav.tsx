@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { X, ArrowRight, ShieldCheck, Heart, User } from 'lucide-react';
 import { SKETCH_COLLECTIONS } from '@/lib/utils/sketchAssets';
 
@@ -26,13 +27,14 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
         <div>
           {/* Header */}
           <div className="flex items-center justify-between pb-6 border-b border-meow-border">
-            <Link href="/" onClick={onClose} className="flex flex-col">
-              <span className="font-editorial text-2xl font-semibold tracking-wider text-meow-dark">
-                meow
-              </span>
-              <span className="text-[9px] uppercase tracking-[0.25em] text-meow-subtle -mt-1 font-sans">
-                Footwear
-              </span>
+            <Link href="/" onClick={onClose} className="flex items-center">
+              <Image
+                src="/logo.png"
+                alt="MEOW"
+                width={120}
+                height={36}
+                className="h-7 w-auto object-contain"
+              />
             </Link>
             <button
               onClick={onClose}

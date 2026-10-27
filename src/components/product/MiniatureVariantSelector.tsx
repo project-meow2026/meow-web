@@ -14,23 +14,30 @@ export const MiniatureVariantSelector: React.FC<MiniatureVariantSelectorProps> =
   selectedVariant,
   onSelectVariant,
 }) => {
-  if (!variants || variants.length === 0) return null;
+  if (!variants || variants.length <= 1) return null;
 
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wider text-meow-dark">
-          Color: <strong className="text-meow-dark font-normal capitalize">{selectedVariant?.color_name || 'Standard'}</strong>
+          Color: <strong className="text-meow-dark font-normal capitalize">{selectedVariant?.color_name || 'Original'}</strong>
         </span>
         <span className="text-[11px] text-meow-subtle">
-          {variants.length} {variants.length === 1 ? 'colorway' : 'colorways'} available
+          {variants.length} colorways available
         </span>
       </div>
 
-      {/* MANDATORY REQUIREMENT: Small miniature images of the actual same footwear in each available color */}
+      {/* Miniature footwear images for each colorway */}
       <div className="flex items-center gap-3 flex-wrap">
         {variants.map((variant) => {
-          const isSelected = selectedVariant?.id === variant.id;
+          const isSelected =
+            selectedVariant?.id === variant.id ||
+            (selectedVariant &&
+              variant &&
+              ((selectedVariant.id === 'primary-base' && variant.id === 'primary-base') ||
+                (selectedVariant.color_name === variant.color_name &&
+                  (selectedVariant.miniature_image_url === variant.miniature_image_url ||
+                    selectedVariant.primary_image_url === variant.primary_image_url))));
 
           return (
             <button

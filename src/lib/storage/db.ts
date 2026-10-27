@@ -10,7 +10,8 @@ import {
   AboutSection, 
   Order, 
   OrderItem, 
-  ContactEnquiry 
+  ContactEnquiry,
+  PreloadVideoSetting
 } from '@/lib/supabase/types';
 
 // Initial default categories for MEOW as required by Master Prompt Section 4
@@ -125,11 +126,22 @@ export const INITIAL_ABOUT_SECTION: AboutSection = {
   ],
 };
 
+export const INITIAL_PRELOAD_VIDEO: PreloadVideoSetting = {
+  is_enabled: true,
+  video_url: 'https://res.cloudinary.com/k7t4skr1/video/upload/v1793007834/meow/hero/desktop/qlqsgtcvyihqq2bsnu0s.mp4',
+  badge: 'MEOW FOOTWEAR',
+  title: 'THE ART OF DRESSING WELL',
+  subtitle: 'Quiet confidence. Timeless comfort.',
+  skip_button_text: 'Skip Intro',
+  auto_close_on_end: true,
+};
+
 // Storage keys for local persistence (v2 clean keys)
 const STORAGE_KEYS = {
   CATEGORIES: 'meow_db_categories_v2',
   PRODUCTS: 'meow_db_products_v2',
   HERO: 'meow_db_hero_v2',
+  PRELOAD_VIDEO: 'meow_db_preload_video_v2',
   CONTACT: 'meow_db_contact_v2',
   SOCIAL: 'meow_db_social_v2',
   ABOUT: 'meow_db_about_v2',
@@ -684,6 +696,83 @@ export const dbService = {
         }
       } catch (e) {
         console.warn('API /api/admin/hero save error, using cached state:', e);
+      }
+    }
+
+    return updated;
+  },
+
+  // --------------------------------------------------------------------------
+  // PRELOAD VIDEO INTRO (Shown once on first website visit)
+  // --------------------------------------------------------------------------
+  async getPreloadVideo(): Promise<PreloadVideoSetting> {
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/preload-video?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.preloadVideo) {
+            setLocalData(STORAGE_KEYS.PRELOAD_VIDEO, resData.preloadVideo);
+            return resData.preloadVideo as PreloadVideoSetting;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'preload_video')
+          .single();
+        if (!error && data?.value) {
+          setLocalData(STORAGE_KEYS.PRELOAD_VIDEO, data.value);
+          return data.value as PreloadVideoSetting;
+        }
+      } catch (err) {
+        console.warn('Error fetching preload video from Supabase:', err);
+      }
+    }
+
+    return getLocalData<PreloadVideoSetting>(STORAGE_KEYS.PRELOAD_VIDEO, INITIAL_PRELOAD_VIDEO);
+  },
+
+  async savePreloadVideo(setting: Partial<PreloadVideoSetting>): Promise<PreloadVideoSetting> {
+    const current = await this.getPreloadVideo();
+    const updated: PreloadVideoSetting = {
+      ...current,
+      ...setting,
+      updated_at: new Date().toISOString(),
+    };
+    setLocalData(STORAGE_KEYS.PRELOAD_VIDEO, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/admin/preload-video', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        });
+        const resData = await res.json();
+        if (res.ok && resData.preloadVideo) {
+          setLocalData(STORAGE_KEYS.PRELOAD_VIDEO, resData.preloadVideo);
+          return resData.preloadVideo as PreloadVideoSetting;
+        }
+      } catch (e) {
+        console.warn('API /api/admin/preload-video save error, using cached state:', e);
+      }
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('site_settings').upsert({
+          key: 'preload_video',
+          value: updated,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn('Failed to update preload video in Supabase:', e);
       }
     }
 

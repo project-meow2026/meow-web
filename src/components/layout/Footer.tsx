@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MessageCircle, Mail, MapPin, ArrowRight, Check } from 'lucide-react';
 import { SKETCH_COLLECTIONS } from '@/lib/utils/sketchAssets';
 
@@ -23,13 +24,14 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 pb-14 border-b border-meow-border">
           {/* Col 1: Brand & Philosophy */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="inline-block">
-              <span className="font-editorial text-3xl font-semibold tracking-wider text-meow-dark">
-                meow
-              </span>
-              <span className="block text-[9px] uppercase tracking-[0.25em] text-meow-subtle -mt-1 font-sans">
-                Footwear
-              </span>
+            <Link href="/" className="inline-block group">
+              <Image
+                src="/logo.png"
+                alt="MEOW"
+                width={130}
+                height={40}
+                className="h-7 sm:h-8 w-auto object-contain transition-opacity group-hover:opacity-85"
+              />
             </Link>
             <p className="text-sm text-meow-muted max-w-sm leading-relaxed">
               Quiet confidence. Timeless comfort. MEOW crafts minimal luxury footwear blending anatomical support with conscious, enduring design.

@@ -66,9 +66,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
   };
 
   return (
-    <section className="relative w-full h-[85vh] sm:h-[90vh] lg:h-[95vh] min-h-[580px] max-h-[1080px] overflow-hidden bg-black flex items-center">
-      {/* Full Widescreen Video Background */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden">
+    <section className="relative w-full h-[75vh] sm:h-[90vh] lg:h-[95vh] min-h-[460px] sm:min-h-[580px] max-h-[1080px] overflow-hidden bg-black flex items-center">
+      {/* Full Widescreen Video Background (Zoomed out slightly on mobile view as requested) */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
         <video
           key={videoUrl}
           ref={(el) => {
@@ -86,7 +86,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
           playsInline
           controls={false}
           preload="auto"
-          className="w-full h-full object-cover object-center scale-[1.02]"
+          className="w-full h-full object-cover object-center scale-[0.88] sm:scale-[1.02] origin-center transition-transform duration-700"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
         >
@@ -100,29 +100,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
       </div>
 
       {/* Editorial Content Overlay on Top of Video */}
-      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16">
-        <div className="max-w-2xl sm:max-w-3xl space-y-6 sm:space-y-8 animate-fade-in-up">
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-10 sm:py-16">
+        <div className="max-w-2xl sm:max-w-3xl space-y-4 sm:space-y-8 animate-fade-in-up">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[11px] font-semibold uppercase tracking-[0.25em]">
-            <Sparkles className="w-3.5 h-3.5 text-meow-terracotta" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.25em]">
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-meow-terracotta" />
             <span>{banner.badge || 'SPRING / SUMMER'}</span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="font-editorial text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-white leading-[1.05] tracking-tight drop-shadow-lg">
+          <h1 className="font-editorial text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-white leading-[1.08] sm:leading-[1.05] tracking-tight drop-shadow-lg">
             {banner.heading || 'THE ART OF DRESSING WELL'}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-lg md:text-xl text-white/90 max-w-xl font-sans font-light leading-relaxed drop-shadow-md">
+          <p className="text-xs sm:text-lg md:text-xl text-white/90 max-w-xl font-sans font-light leading-relaxed drop-shadow-md">
             {banner.subtitle || 'Quiet confidence. Timeless comfort.'}
           </p>
 
           {/* Call to Action Button */}
-          <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4">
+          <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-3 sm:gap-4">
             <Link
               href={banner.cta_link || '/shop'}
-              className="inline-flex items-center gap-3 px-8 sm:px-10 py-4 bg-white text-meow-dark text-xs uppercase tracking-widest font-semibold hover:bg-meow-terracotta hover:text-white transition-all shadow-2xl group rounded-sm"
+              className="inline-flex items-center gap-2.5 px-6 sm:px-10 py-3 sm:py-4 bg-white text-meow-dark text-xs uppercase tracking-widest font-semibold hover:bg-meow-terracotta hover:text-white transition-all shadow-2xl group rounded-sm"
             >
               <span>{banner.cta_text || 'DISCOVER THE COLLECTION'}</span>
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

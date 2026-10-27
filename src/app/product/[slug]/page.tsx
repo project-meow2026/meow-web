@@ -50,10 +50,35 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
         const prod = await dbService.getProductBySlug(params.slug);
         if (prod) {
           setProduct(prod);
-          // Set initial variant
-          if (prod.variants && prod.variants.length > 0) {
+
+          // Initial selected variant MUST default to the primary product
+          const matchingPrimary = prod.variants?.find(
+            (v) =>
+              (v.primary_image_url && v.primary_image_url === prod.primary_image_url) ||
+              (v.miniature_image_url && v.miniature_image_url === prod.primary_image_url)
+          );
+
+          if (matchingPrimary) {
+            setSelectedVariant(matchingPrimary);
+          } else if (prod.primary_image_url) {
+            setSelectedVariant({
+              id: 'primary-base',
+              product_id: prod.id,
+              color_name: 'Original',
+              sku: prod.slug,
+              miniature_image_url: prod.primary_image_url,
+              primary_image_url: prod.primary_image_url,
+              gallery_images: prod.images?.map((i) => i.image_url) || [],
+              available_sizes: prod.sizes || ['5', '6', '7', '8', '9', '10', '11'],
+              stock: prod.stock || 15,
+              price_override: null,
+              is_active: true,
+              display_order: 0,
+            });
+          } else if (prod.variants && prod.variants.length > 0) {
             setSelectedVariant(prod.variants[0]);
           }
+
           // Set initial size
           if (prod.sizes && prod.sizes.length > 0) {
             setSelectedSize(prod.sizes[0]);
@@ -72,6 +97,38 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
     }
     loadProduct();
   }, [params.slug]);
+
+  // Build full list of color options including the Primary/Original product (must be called unconditionally before early returns)
+  const allColorVariants = React.useMemo(() => {
+    if (!product) return [];
+
+    const hasPrimaryInVariants = product.variants?.some(
+      (v) =>
+        (v.primary_image_url && v.primary_image_url === product.primary_image_url) ||
+        (v.miniature_image_url && v.miniature_image_url === product.primary_image_url) ||
+        v.id === 'primary-base'
+    );
+
+    if (!hasPrimaryInVariants && product.primary_image_url) {
+      const primaryVariant: ProductVariant = {
+        id: 'primary-base',
+        product_id: product.id,
+        color_name: 'Original',
+        sku: product.slug,
+        miniature_image_url: product.primary_image_url,
+        primary_image_url: product.primary_image_url,
+        gallery_images: product.images?.map((i) => i.image_url) || [],
+        available_sizes: product.sizes || ['5', '6', '7', '8', '9', '10', '11'],
+        stock: product.stock || 15,
+        price_override: null,
+        is_active: true,
+        display_order: 0,
+      };
+      return [primaryVariant, ...(product.variants || [])];
+    }
+
+    return product.variants || [];
+  }, [product]);
 
   if (loading) {
     return (
@@ -109,16 +166,31 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
     );
   }
 
-  // Active variant image (checks full-size primary or miniature image)
+  // Is the primary/original product selected?
+  const isPrimarySelected =
+    !selectedVariant ||
+    selectedVariant.id === 'primary-base' ||
+    selectedVariant.primary_image_url === product.primary_image_url ||
+    selectedVariant.miniature_image_url === product.primary_image_url;
+
+  // Active variant image when a color variant is chosen
   const activeVariantImage = selectedVariant?.primary_image_url || selectedVariant?.miniature_image_url;
 
-  // Combine gallery images: Active colorway variant image comes FIRST as the main featured stage image!
-  const galleryImages = [
-    activeVariantImage || product.primary_image_url,
-    ...(selectedVariant?.gallery_images || []),
-    ...(activeVariantImage && activeVariantImage !== product.primary_image_url ? [product.primary_image_url] : []),
-    ...(product.images?.map((i) => i.image_url) || []),
-  ].filter(Boolean) as string[];
+  // Combine gallery images:
+  // Primary product image is strictly first/primary on initial load.
+  // When a miniature color variant is clicked, that variant's product image becomes first/primary!
+  const galleryImages = isPrimarySelected
+    ? [
+        product.primary_image_url,
+        ...(product.images?.map((i) => i.image_url) || []),
+        ...(product.variants?.map((v) => v.primary_image_url || v.miniature_image_url).filter((img) => img && img !== product.primary_image_url) || []),
+      ].filter(Boolean) as string[]
+    : [
+        activeVariantImage || product.primary_image_url,
+        ...(selectedVariant?.gallery_images || []),
+        product.primary_image_url,
+        ...(product.images?.map((i) => i.image_url) || []),
+      ].filter(Boolean) as string[];
 
   // Price calculations
   const currentPrice = selectedVariant?.price_override ?? product.price;
@@ -270,11 +342,11 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                 </p>
               </div>
 
-              {/* MANDATORY REQUIREMENT: Miniature Footwear Images Representing Color Variants */}
-              {product.variants && product.variants.length > 0 && (
+              {/* Miniature Footwear Images Representing Color Variants */}
+              {allColorVariants && allColorVariants.length > 1 && (
                 <div className="pt-4 border-t border-meow-border">
                   <MiniatureVariantSelector
-                    variants={product.variants}
+                    variants={allColorVariants}
                     selectedVariant={selectedVariant}
                     onSelectVariant={(variant) => setSelectedVariant(variant)}
                   />
@@ -396,7 +468,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}

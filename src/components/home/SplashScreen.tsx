@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 
 interface SplashScreenProps {
@@ -76,13 +77,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, forceSho
     >
       {/* Top Bar: Brand Logo & Skip Button */}
       <div className="w-full max-w-5xl flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="font-editorial text-3xl sm:text-4xl font-semibold tracking-wider text-meow-dark">
-            meow
-          </span>
-          <span className="text-[10px] uppercase tracking-[0.3em] text-meow-subtle -mt-1 font-sans">
-            Footwear
-          </span>
+        <div className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="MEOW"
+            width={130}
+            height={40}
+            className="h-8 sm:h-9 w-auto object-contain"
+            priority
+          />
         </div>
 
         <button

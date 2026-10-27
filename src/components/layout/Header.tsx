@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -58,13 +59,15 @@ export const Header: React.FC = () => {
 
             {/* Brand Logo - MEOW */}
             <div className="flex items-center">
-              <Link href="/" className="group flex flex-col items-center">
-                <span className="font-editorial text-2xl sm:text-3xl font-semibold tracking-wider text-meow-dark transition-opacity group-hover:opacity-85">
-                  meow
-                </span>
-                <span className="text-[9px] uppercase tracking-[0.25em] text-meow-subtle -mt-1 font-sans">
-                  Footwear
-                </span>
+              <Link href="/" className="group flex items-center">
+                <Image
+                  src="/logo.png"
+                  alt="MEOW"
+                  width={140}
+                  height={42}
+                  className="h-7 sm:h-8 w-auto object-contain transition-opacity group-hover:opacity-85"
+                  priority
+                />
               </Link>
             </div>
 

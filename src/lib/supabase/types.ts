@@ -76,6 +76,18 @@ export interface HeroBanner {
   updated_at?: string;
 }
 
+export interface PreloadVideoSetting {
+  id?: string;
+  is_enabled: boolean;
+  video_url: string;
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  skip_button_text?: string;
+  auto_close_on_end?: boolean;
+  updated_at?: string;
+}
+
 export interface ContactInfoSetting {
   phone: string;
   whatsapp: string;
