@@ -15,6 +15,7 @@ import {
   MidPageBannerSetting,
   BottomCtaSetting,
   TheMeowStandardSetting,
+  ShopHeroBannerSetting,
 } from '@/lib/supabase/types';
 
 // Initial default categories for MEOW as required by Master Prompt Section 4
@@ -162,6 +163,18 @@ export const INITIAL_THE_MEOW_STANDARD: TheMeowStandardSetting = {
   subtitle: 'We believe what touches your feet should liberate your stride. From natural cork footbeds to pillowy double-density outsoles, every MEOW piece is made for modern life.',
 };
 
+export const INITIAL_SHOP_HERO_BANNER: ShopHeroBannerSetting = {
+  is_enabled: true,
+  badge: 'DISCOVER',
+  heading: 'ALL PRODUCTS',
+  subtitle: 'Crafted for everyday comfort. Engineered anatomical support.',
+  accent_tag: 'STEP INTO STYLE',
+  background_image_url: null,
+  video_url: null,
+  overlay_opacity: 30,
+  text_color: 'dark',
+};
+
 // Storage keys for local persistence (v2 clean keys)
 const STORAGE_KEYS = {
   CATEGORIES: 'meow_db_categories_v2',
@@ -171,6 +184,7 @@ const STORAGE_KEYS = {
   MID_PAGE_BANNER: 'meow_db_mid_page_banner_v2',
   BOTTOM_CTA: 'meow_db_bottom_cta_v2',
   THE_MEOW_STANDARD: 'meow_db_the_meow_standard_v2',
+  SHOP_HERO_BANNER: 'meow_db_shop_hero_banner_v2',
   CONTACT: 'meow_db_contact_v2',
   SOCIAL: 'meow_db_social_v2',
   ABOUT: 'meow_db_about_v2',
@@ -1015,6 +1029,69 @@ export const dbService = {
       try {
         await supabase.from('site_settings').upsert({
           key: 'the_meow_standard',
+          value: updated,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (_) {}
+    }
+
+    return updated;
+  },
+
+  async getShopHeroBanner(): Promise<ShopHeroBannerSetting> {
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/banners?type=shop&t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.banner) {
+            setLocalData(STORAGE_KEYS.SHOP_HERO_BANNER, resData.banner);
+            return resData.banner as ShopHeroBannerSetting;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'shop_hero_banner')
+          .single();
+        if (!error && data?.value) {
+          setLocalData(STORAGE_KEYS.SHOP_HERO_BANNER, data.value);
+          return data.value as ShopHeroBannerSetting;
+        }
+      } catch (_) {}
+    }
+
+    return getLocalData<ShopHeroBannerSetting>(STORAGE_KEYS.SHOP_HERO_BANNER, INITIAL_SHOP_HERO_BANNER);
+  },
+
+  async saveShopHeroBanner(setting: Partial<ShopHeroBannerSetting>): Promise<ShopHeroBannerSetting> {
+    const current = await this.getShopHeroBanner();
+    const updated: ShopHeroBannerSetting = {
+      ...current,
+      ...setting,
+      updated_at: new Date().toISOString(),
+    };
+    setLocalData(STORAGE_KEYS.SHOP_HERO_BANNER, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/admin/banners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'shop', data: updated }),
+        });
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('site_settings').upsert({
+          key: 'shop_hero_banner',
           value: updated,
           updated_at: new Date().toISOString(),
         });

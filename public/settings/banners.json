@@ -1,0 +1,14 @@
+{
+  "shop_hero_banner": {
+    "is_enabled": true,
+    "badge": "DISCOVER",
+    "heading": "ALL PRODUCTS",
+    "subtitle": "Crafted for everyday comfort. Engineered anatomical support.",
+    "accent_tag": "STEP INTO STYLE",
+    "background_image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793106687/meow/banners/josb1kjmfnd5ponlhfik.png",
+    "video_url": null,
+    "overlay_opacity": 30,
+    "text_color": "dark",
+    "updated_at": "2026-10-27T13:12:23.719Z"
+  }
+}
