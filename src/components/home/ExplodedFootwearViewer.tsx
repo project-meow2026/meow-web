@@ -19,6 +19,7 @@ export const ExplodedFootwearViewer: React.FC<ExplodedFootwearViewerProps> = ({
   const [viewMode, setViewMode] = useState<'3d-exploded' | 'video'>('3d-exploded');
   const [explosionProgress, setExplosionProgress] = useState(0); // 0 (assembled) to 100 (fully exploded)
   const [isAutoExploding, setIsAutoExploding] = useState(true);
+  const [activeLayer, setActiveLayer] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Layers data for exploded view
