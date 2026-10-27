@@ -251,7 +251,7 @@ export default function AdminPreloaderPage() {
             </span>
 
             {setting.video_url ? (
-              <div className="relative aspect-video max-w-2xl bg-black rounded-lg overflow-hidden border border-meow-border shadow-inner group">
+              <div className="relative aspect-video max-w-2xl bg-white rounded-lg overflow-hidden border border-meow-border shadow-inner group">
                 <video
                   ref={videoPreviewRef}
                   key={setting.video_url}
@@ -259,7 +259,7 @@ export default function AdminPreloaderPage() {
                   playsInline
                   loop
                   muted={isMuted}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-white"
                 />
 
                 {/* Floating Preview Controls */}
