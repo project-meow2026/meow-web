@@ -121,6 +121,20 @@ export interface TheMeowStandardSetting {
   updated_at?: string;
 }
 
+export interface ShopHeroBannerSetting {
+  id?: string;
+  is_enabled: boolean;
+  badge: string;
+  heading: string;
+  subtitle: string;
+  accent_tag?: string;
+  background_image_url?: string | null;
+  video_url?: string | null;
+  overlay_opacity?: number;
+  text_color?: 'dark' | 'white';
+  updated_at?: string;
+}
+
 export interface ContactInfoSetting {
   phone: string;
   whatsapp: string;

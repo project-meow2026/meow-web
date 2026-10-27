@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Save, Check, Video, Play, Pause, RefreshCw, Upload, Eye, Trash2, ArrowUpRight } from 'lucide-react';
+import { Save, Check, Video, Play, Pause, RefreshCw, Upload, Eye, Trash2, ArrowUpRight, ShoppingBag } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { dbService, INITIAL_HERO_BANNER } from '@/lib/storage/db';
@@ -165,7 +165,7 @@ export default function AdminHeroPage() {
       />
 
       {/* Preloading Intro Video Notice Banner */}
-      <div className="mb-6 p-4 bg-[#F7F6F2] border border-meow-border rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="mb-4 p-4 bg-[#F7F6F2] border border-meow-border rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-lg bg-white border border-meow-border text-meow-dark flex-shrink-0">
             <Video className="w-5 h-5" />
@@ -184,6 +184,29 @@ export default function AdminHeroPage() {
           className="flex-shrink-0 px-4 py-2 bg-meow-dark text-white rounded text-xs uppercase tracking-wider font-semibold hover:bg-meow-dark/85 transition-colors"
         >
           Manage Preload Video
+        </Link>
+      </div>
+
+      {/* Shopping Page Hero Banner Shortcut */}
+      <div className="mb-6 p-4 bg-white border border-meow-border rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-lg bg-[#FAF9F6] border border-meow-border text-meow-terracotta flex-shrink-0">
+            <ShoppingBag className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-meow-dark">
+              Shopping Page Hero Banner (/shop)
+            </h4>
+            <p className="text-xs text-meow-muted mt-0.5">
+              Looking to add or customize the top hero banner for the shop catalog page with custom photos and titles?
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/admin/banners"
+          className="flex-shrink-0 px-4 py-2 border border-meow-dark text-meow-dark rounded text-xs uppercase tracking-wider font-semibold hover:bg-meow-dark hover:text-white transition-colors"
+        >
+          Customize Shop Banner →
         </Link>
       </div>
 

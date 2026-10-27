@@ -1,23 +1,35 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, Check, Image as ImageIcon, Sparkles, Layers, Eye, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { 
+  Save, 
+  Check, 
+  Image as ImageIcon, 
+  Sparkles, 
+  Layers, 
+  ShoppingBag,
+  ExternalLink,
+} from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { 
   dbService, 
   INITIAL_MID_PAGE_BANNER, 
   INITIAL_BOTTOM_CTA, 
-  INITIAL_THE_MEOW_STANDARD 
+  INITIAL_THE_MEOW_STANDARD,
+  INITIAL_SHOP_HERO_BANNER,
 } from '@/lib/storage/db';
 import { 
   MidPageBannerSetting, 
   BottomCtaSetting, 
-  TheMeowStandardSetting 
+  TheMeowStandardSetting,
+  ShopHeroBannerSetting,
 } from '@/lib/supabase/types';
 
 export default function AdminBannersPage() {
-  const [activeTab, setActiveTab] = useState<'mid' | 'bottom' | 'standard'>('mid');
+  const [activeTab, setActiveTab] = useState<'shop' | 'mid' | 'bottom' | 'standard'>('shop');
+  const [shopBanner, setShopBanner] = useState<ShopHeroBannerSetting>(INITIAL_SHOP_HERO_BANNER);
   const [midBanner, setMidBanner] = useState<MidPageBannerSetting>(INITIAL_MID_PAGE_BANNER);
   const [bottomCta, setBottomCta] = useState<BottomCtaSetting>(INITIAL_BOTTOM_CTA);
   const [standardBanner, setStandardBanner] = useState<TheMeowStandardSetting>(INITIAL_THE_MEOW_STANDARD);
@@ -28,11 +40,13 @@ export default function AdminBannersPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [mid, btm, std] = await Promise.all([
+        const [shop, mid, btm, std] = await Promise.all([
+          dbService.getShopHeroBanner(),
           dbService.getMidPageBanner(),
           dbService.getBottomCta(),
           dbService.getTheMeowStandard(),
         ]);
+        setShopBanner(shop);
         setMidBanner(mid);
         setBottomCta(btm);
         setStandardBanner(std);
@@ -49,7 +63,11 @@ export default function AdminBannersPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      if (activeTab === 'mid') {
+      if (activeTab === 'shop') {
+        const saved = await dbService.saveShopHeroBanner(shopBanner);
+        setShopBanner(saved);
+        setToastMsg('Shopping Page Hero Banner saved successfully!');
+      } else if (activeTab === 'mid') {
         const saved = await dbService.saveMidPageBanner(midBanner);
         setMidBanner(saved);
         setToastMsg('Mid-page promotional banner saved successfully!');
@@ -73,8 +91,8 @@ export default function AdminBannersPage() {
   return (
     <div>
       <AdminHeader
-        title="Homepage Banners & Promotional Sections CMS"
-        description="Customize the editorial image banner between products, the bottom newsletter CTA background, and brand story banners."
+        title="Storefront & Shopping Page Banners CMS"
+        description="Customize the Shopping Page top hero banner, the homepage editorial image banner between products, the newsletter CTA, and brand story banners."
       />
 
       {toastMsg && (
@@ -86,6 +104,19 @@ export default function AdminBannersPage() {
 
       {/* Tabs */}
       <div className="flex border-b border-meow-border mb-8 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab('shop')}
+          className={`flex items-center gap-2 px-5 py-3 text-xs uppercase tracking-wider font-semibold border-b-2 transition-all whitespace-nowrap ${
+            activeTab === 'shop'
+              ? 'border-meow-dark text-meow-dark'
+              : 'border-transparent text-meow-muted hover:text-meow-dark'
+          }`}
+        >
+          <ShoppingBag className="w-4 h-4 text-meow-terracotta" />
+          <span>Shopping Page Hero Banner (/shop)</span>
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('mid')}
@@ -127,6 +158,131 @@ export default function AdminBannersPage() {
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
+        {/* TAB 0: SHOPPING PAGE HERO BANNER */}
+        {activeTab === 'shop' && (
+          <div className="space-y-8">
+            <div className="border border-meow-border rounded-xl p-6 sm:p-8 bg-white shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-meow-border">
+                <div>
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark flex items-center gap-2">
+                    <ShoppingBag className="w-4 h-4 text-meow-terracotta" />
+                    <span>Shopping Page Hero Banner Settings (/shop)</span>
+                  </h2>
+                  <p className="text-xs text-meow-muted mt-1 max-w-2xl">
+                    Customize the top hero banner for your storefront shopping catalog. Set custom titles, badges, accent tags, and upload a luxury banner photo or utilize the clean editorial beige gradient.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 self-start sm:self-auto">
+                  <Link
+                    href="/shop"
+                    target="_blank"
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-meow-border rounded text-xs font-medium text-meow-dark hover:bg-meow-surface transition-colors"
+                  >
+                    <span>View Live Shop</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-meow-subtle" />
+                  </Link>
+                  <label className="flex items-center gap-2 cursor-pointer bg-meow-surface px-3 py-1.5 rounded border border-meow-border">
+                    <input
+                      type="checkbox"
+                      checked={shopBanner.is_enabled}
+                      onChange={(e) => setShopBanner({ ...shopBanner, is_enabled: e.target.checked })}
+                      className="rounded border-meow-border text-meow-dark focus:ring-meow-dark h-4 w-4"
+                    />
+                    <span className="text-xs font-semibold text-meow-dark">Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Form Input Fields */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-meow-dark mb-1.5">
+                      Badge / Eyebrow Text
+                    </label>
+                    <input
+                      type="text"
+                      value={shopBanner.badge}
+                      onChange={(e) => setShopBanner({ ...shopBanner, badge: e.target.value })}
+                      placeholder="DISCOVER"
+                      className="w-full text-xs px-3.5 py-2.5 bg-meow-surface border border-meow-border rounded-md outline-none focus:border-meow-dark font-sans"
+                    />
+                    <p className="text-[11px] text-meow-subtle mt-1">Small uppercase tag displayed above the main heading.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-meow-dark mb-1.5">
+                      Main Heading
+                    </label>
+                    <input
+                      type="text"
+                      value={shopBanner.heading}
+                      onChange={(e) => setShopBanner({ ...shopBanner, heading: e.target.value })}
+                      placeholder="ALL PRODUCTS"
+                      className="w-full text-xs px-3.5 py-2.5 bg-meow-surface border border-meow-border rounded-md outline-none focus:border-meow-dark font-editorial text-sm"
+                    />
+                    <p className="text-[11px] text-meow-subtle mt-1">Large editorial title displayed prominently at the top of the shopping page.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-meow-dark mb-1.5">
+                      Subtitle / Caption Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={shopBanner.subtitle}
+                      onChange={(e) => setShopBanner({ ...shopBanner, subtitle: e.target.value })}
+                      placeholder="Crafted for everyday comfort. Engineered anatomical support."
+                      className="w-full text-xs px-3.5 py-2.5 bg-meow-surface border border-meow-border rounded-md outline-none focus:border-meow-dark"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-meow-dark mb-1.5">
+                      Right Accent Tag
+                    </label>
+                    <input
+                      type="text"
+                      value={shopBanner.accent_tag || ''}
+                      onChange={(e) => setShopBanner({ ...shopBanner, accent_tag: e.target.value })}
+                      placeholder="STEP INTO STYLE"
+                      className="w-full text-xs px-3.5 py-2.5 bg-meow-surface border border-meow-border rounded-md outline-none focus:border-meow-dark font-sans"
+                    />
+                    <p className="text-[11px] text-meow-subtle mt-1">Bordered accent label positioned to the right.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-meow-dark mb-1.5">
+                      Hero Banner Background Image
+                    </label>
+                    <p className="text-[11px] text-meow-muted mb-2">
+                      Upload a banner photo for your shopping page. If empty, the clean editorial beige gradient will be used.
+                    </p>
+                    <ImageUploader
+                      label="Shopping Page Hero Banner Image"
+                      folder="meow/banners"
+                      value={shopBanner.background_image_url || ''}
+                      aspectRatio="aspect-[16/5]"
+                      onChange={(url) => setShopBanner({ ...shopBanner, background_image_url: url })}
+                    />
+                    {shopBanner.background_image_url && (
+                      <button
+                        type="button"
+                        onClick={() => setShopBanner({ ...shopBanner, background_image_url: null })}
+                        className="mt-2 text-xs text-red-600 hover:text-red-700 underline font-medium"
+                      >
+                        Remove Image & Use Default Beige Gradient
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TAB 1: MID-PAGE BANNER BETWEEN PRODUCTS */}
         {activeTab === 'mid' && (
           <div className="space-y-8">
@@ -236,47 +392,6 @@ export default function AdminBannersPage() {
                 </div>
               </div>
             </div>
-
-            {/* Live Visual Preview */}
-            <div className="border border-meow-border rounded-xl p-6 bg-white shadow-sm space-y-4">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-meow-dark">
-                <Eye className="w-4 h-4" />
-                <span>Live Storefront Preview</span>
-              </div>
-
-              <div className="rounded-2xl overflow-hidden border border-neutral-200/80 bg-[#FAF8F5] grid grid-cols-1 md:grid-cols-2 gap-0">
-                <div className="relative min-h-[260px] bg-neutral-100 overflow-hidden">
-                  {midBanner.image_url ? (
-                    <img
-                      src={midBanner.image_url}
-                      alt="Banner Preview"
-                      className="w-full h-full object-cover object-center"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs text-neutral-400">
-                      No Image Uploaded
-                    </div>
-                  )}
-                </div>
-                <div className="p-8 sm:p-12 flex flex-col justify-center space-y-4 bg-[#FAF8F5]">
-                  <span className="text-[10px] uppercase tracking-[0.25em] text-[#7A756F] font-sans font-medium">
-                    {midBanner.badge || 'MEOW HERITAGE'}
-                  </span>
-                  <h3 className="font-editorial text-3xl sm:text-4xl text-[#1A1A1A] font-normal leading-tight whitespace-pre-line">
-                    {midBanner.heading || 'Every Step\nA Story'}
-                  </h3>
-                  <p className="text-xs text-[#5C564F] font-sans leading-relaxed max-w-sm">
-                    {midBanner.subtitle || 'Crafted for modern lives with purpose, comfort and character.'}
-                  </p>
-                  <div className="pt-2">
-                    <span className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-black text-white text-[11px] uppercase tracking-wider font-semibold">
-                      <span>{midBanner.cta_text || 'EXPLORE OUR STORY'}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
@@ -371,49 +486,6 @@ export default function AdminBannersPage() {
                       placeholder="SUBSCRIBE"
                       className="w-full text-xs px-3.5 py-2.5 bg-meow-surface border border-meow-border rounded-md outline-none focus:border-meow-dark"
                     />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Visual Preview */}
-            <div className="border border-meow-border rounded-xl p-6 bg-white shadow-sm space-y-4">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-meow-dark">
-                <Eye className="w-4 h-4" />
-                <span>Live Storefront Preview</span>
-              </div>
-
-              <div className="relative rounded-xl overflow-hidden min-h-[160px] p-8 sm:p-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-black">
-                {bottomCta.background_image_url && (
-                  <img
-                    src={bottomCta.background_image_url}
-                    alt="Bottom CTA Background"
-                    className="absolute inset-0 w-full h-full object-cover object-center opacity-60 pointer-events-none"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/80 pointer-events-none" />
-
-                <div className="relative z-10 space-y-2 max-w-md">
-                  <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-sans block">
-                    {bottomCta.badge || 'MEOW / JOURNAL'}
-                  </span>
-                  <h3 className="font-editorial text-2xl sm:text-3xl text-white font-light">
-                    {bottomCta.heading || 'Get Early Access'}
-                  </h3>
-                  <p className="text-xs text-neutral-300 font-sans">
-                    {bottomCta.subtitle || 'New arrivals, stories and special offers straight to your inbox.'}
-                  </p>
-                </div>
-
-                <div className="relative z-10 w-full md:w-auto">
-                  <div className="flex items-center bg-white rounded-full p-1 pl-4 max-w-md shadow-lg">
-                    <span className="text-xs text-neutral-400 flex-1">Enter your email</span>
-                    <button
-                      type="button"
-                      className="px-5 py-2 rounded-full bg-[#E8CBA7] text-neutral-900 text-xs font-semibold uppercase tracking-wider"
-                    >
-                      {bottomCta.button_text || 'SUBSCRIBE'} →
-                    </button>
                   </div>
                 </div>
               </div>

@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     const { type, data } = await req.json();
 
     const keyMap: Record<string, string> = {
+      shop: 'shop_hero_banner',
       mid: 'mid_page_banner',
       bottom: 'bottom_cta',
       standard: 'the_meow_standard',

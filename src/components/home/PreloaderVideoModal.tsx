@@ -114,25 +114,32 @@ export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
   return (
     <div
       id="meow-preloader-root"
-      className={`fixed inset-0 z-[999999] bg-white items-center justify-center overflow-hidden transition-opacity duration-800 ease-in-out select-none ${
+      className={`fixed inset-0 z-[999999] bg-white flex items-center justify-center overflow-hidden transition-opacity duration-800 ease-in-out select-none ${
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       aria-hidden="true"
     >
-      {/* Fullscreen Video playing fully from start to finish - Zoomed out on mobile so the whole sandal is visible, blank space filled with white */}
-      <video
-        ref={videoRef}
-        key={effectiveVideoUrl}
-        src={effectiveVideoUrl}
-        autoPlay
-        muted
-        playsInline
-        controls={false}
-        preload="auto"
-        onEnded={dismiss}
-        onError={dismiss}
-        className="w-full h-full object-contain object-center pointer-events-none max-w-full max-h-screen bg-white"
-      />
+      {/* Video frame wrapper: crops 1-2px edge macroblocks/lines from encoder or subpixel rendering */}
+      <div className="relative flex items-center justify-center overflow-hidden max-w-full max-h-screen bg-white scale-[1.45] sm:scale-100 transition-transform duration-500">
+        <video
+          ref={videoRef}
+          key={effectiveVideoUrl}
+          src={effectiveVideoUrl}
+          autoPlay
+          muted
+          playsInline
+          controls={false}
+          preload="auto"
+          onEnded={dismiss}
+          onError={dismiss}
+          className="block max-w-full max-h-screen w-auto h-auto object-cover pointer-events-none bg-white scale-[1.05] origin-center"
+          style={{
+            border: 'none',
+            outline: 'none',
+            boxShadow: 'none',
+          }}
+        />
+      </div>
     </div>
   );
 };

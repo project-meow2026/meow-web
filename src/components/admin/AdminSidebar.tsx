@@ -29,7 +29,7 @@ export const AdminSidebar: React.FC = () => {
     { label: 'Categories (6)', href: '/admin/categories', icon: FolderTree },
     { label: 'Products', href: '/admin/products', icon: Package },
     { label: 'Hero Banner & 3D Video', href: '/admin/hero', icon: Sparkles },
-    { label: 'Homepage Banners', href: '/admin/banners', icon: Layers },
+    { label: 'Banners (Shop & Home)', href: '/admin/banners', icon: Layers },
     { label: 'Preload Intro Video', href: '/admin/preloader', icon: Video },
     { label: 'About Us Content', href: '/admin/about', icon: Info },
     { label: 'Contact & Social Links', href: '/admin/contact', icon: PhoneCall },

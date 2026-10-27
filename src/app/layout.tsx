@@ -95,6 +95,18 @@ export default function RootLayout({
               #meow-preloader-root {
                 display: none;
               }
+              #meow-preloader-root video::-webkit-media-controls,
+              #meow-preloader-root video::-webkit-media-controls-enclosure,
+              #meow-preloader-root video::-webkit-media-controls-panel {
+                display: none !important;
+                -webkit-appearance: none;
+              }
+              #meow-preloader-root video {
+                border: 0 !important;
+                outline: none !important;
+                box-shadow: none !important;
+                background-color: #FFFFFF !important;
+              }
             `,
           }}
         />

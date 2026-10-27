@@ -3,7 +3,8 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 import { 
   INITIAL_MID_PAGE_BANNER, 
   INITIAL_BOTTOM_CTA, 
-  INITIAL_THE_MEOW_STANDARD 
+  INITIAL_THE_MEOW_STANDARD,
+  INITIAL_SHOP_HERO_BANNER,
 } from '@/lib/storage/db';
 
 export const dynamic = 'force-dynamic';
@@ -33,14 +34,24 @@ export async function GET(req: NextRequest) {
 
     const supabase = getSupabaseServerClient();
     if (!supabase) {
+      if (type === 'shop') return NextResponse.json({ banner: INITIAL_SHOP_HERO_BANNER });
       if (type === 'mid') return NextResponse.json({ banner: INITIAL_MID_PAGE_BANNER });
       if (type === 'bottom') return NextResponse.json({ banner: INITIAL_BOTTOM_CTA });
       if (type === 'standard') return NextResponse.json({ banner: INITIAL_THE_MEOW_STANDARD });
       return NextResponse.json({
+        shop: INITIAL_SHOP_HERO_BANNER,
         mid: INITIAL_MID_PAGE_BANNER,
         bottom: INITIAL_BOTTOM_CTA,
         standard: INITIAL_THE_MEOW_STANDARD,
       });
+    }
+
+    if (type === 'shop') {
+      const { data } = await supabase.from('site_settings').select('value').eq('key', 'shop_hero_banner').single();
+      return NextResponse.json(
+        { banner: data?.value || INITIAL_SHOP_HERO_BANNER },
+        { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+      );
     }
 
     if (type === 'mid') {
@@ -70,13 +81,14 @@ export async function GET(req: NextRequest) {
     const { data: rows } = await supabase
       .from('site_settings')
       .select('key, value')
-      .in('key', ['mid_page_banner', 'bottom_cta', 'the_meow_standard']);
+      .in('key', ['shop_hero_banner', 'mid_page_banner', 'bottom_cta', 'the_meow_standard']);
 
     const map = new Map<string, any>();
     rows?.forEach((r) => map.set(r.key, r.value));
 
     return NextResponse.json(
       {
+        shop: map.get('shop_hero_banner') || INITIAL_SHOP_HERO_BANNER,
         mid: map.get('mid_page_banner') || INITIAL_MID_PAGE_BANNER,
         bottom: map.get('bottom_cta') || INITIAL_BOTTOM_CTA,
         standard: map.get('the_meow_standard') || INITIAL_THE_MEOW_STANDARD,
@@ -86,6 +98,7 @@ export async function GET(req: NextRequest) {
   } catch (err: any) {
     return NextResponse.json(
       {
+        shop: INITIAL_SHOP_HERO_BANNER,
         mid: INITIAL_MID_PAGE_BANNER,
         bottom: INITIAL_BOTTOM_CTA,
         standard: INITIAL_THE_MEOW_STANDARD,
