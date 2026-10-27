@@ -4,6 +4,8 @@ export type CloudinaryFolder =
   | 'meow/variants'
   | 'meow/hero/desktop'
   | 'meow/hero/mobile'
+  | 'meow/preloader'
+  | 'meow/banners'
   | 'meow/about';
 
 export interface CloudinaryUploadResult {

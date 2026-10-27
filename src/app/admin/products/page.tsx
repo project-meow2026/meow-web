@@ -9,16 +9,40 @@ import { Product, Category } from '@/lib/supabase/types';
 import { formatPrice } from '@/lib/utils/formatters';
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('meow_db_products_v2');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
+
+  const [categories, setCategories] = useState<Category[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('meow_db_categories_v2');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const loadProducts = async () => {
+  const loadProducts = async (forceLoading = false) => {
     try {
-      setLoading(true);
+      if (forceLoading) setLoading(true);
       const [prods, cats] = await Promise.all([
         dbService.getAllProductsAdmin(),
         dbService.getAllCategoriesAdmin(),
@@ -33,8 +57,9 @@ export default function AdminProductsPage() {
   };
 
   useEffect(() => {
-    loadProducts();
-    const handleFocus = () => loadProducts();
+    // If no products in cache, show loading, otherwise load seamlessly in background
+    loadProducts(products.length === 0);
+    const handleFocus = () => loadProducts(false);
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
@@ -115,7 +140,12 @@ export default function AdminProductsPage() {
 
       {/* Product Table */}
       <div className="border border-meow-border rounded-xl bg-white shadow-sm overflow-hidden">
-        {filtered.length === 0 ? (
+        {loading && products.length === 0 ? (
+          <div className="p-12 text-center text-xs text-meow-muted space-y-3">
+            <div className="w-8 h-8 border-2 border-meow-dark/30 border-t-meow-dark rounded-full animate-spin mx-auto" />
+            <p className="font-medium text-meow-dark">Loading products catalog...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-xs text-meow-muted">
             {products.length === 0 ? (
               <div className="space-y-3">

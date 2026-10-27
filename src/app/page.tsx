@@ -1,75 +1,66 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { dbService, INITIAL_HERO_BANNER, INITIAL_PRELOAD_VIDEO } from '@/lib/storage/db';
-import { Category, Product, HeroBanner, PreloadVideoSetting } from '@/lib/supabase/types';
+import React from 'react';
+import { getHomeServerData } from '@/lib/storage/homeData';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/home/HeroSection';
 import { CategorySection } from '@/components/home/CategorySection';
 import { BestSellersSection } from '@/components/home/BestSellersSection';
+import { MidPageBanner } from '@/components/home/MidPageBanner';
 import { NewArrivalsSection } from '@/components/home/NewArrivalsSection';
-import { FeaturedSection } from '@/components/home/FeaturedSection';
 import { BrandStorySection } from '@/components/home/BrandStorySection';
+import { BottomCtaSection } from '@/components/home/BottomCtaSection';
 import { PreloaderVideoModal } from '@/components/home/PreloaderVideoModal';
 
-export default function HomePage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [heroBanner, setHeroBanner] = useState<HeroBanner>(INITIAL_HERO_BANNER);
-  const [preloadVideo, setPreloadVideo] = useState<PreloadVideoSetting>(INITIAL_PRELOAD_VIDEO);
-  const [loading, setLoading] = useState(true);
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [cats, prods, hero, preload] = await Promise.all([
-          dbService.getCategories(),
-          dbService.getProducts(),
-          dbService.getHeroBanner(),
-          dbService.getPreloadVideo(),
-        ]);
-        setCategories(cats);
-        setProducts(prods);
-        setHeroBanner(hero);
-        setPreloadVideo(preload);
-      } catch (err) {
-        console.error('Failed to load homepage data:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+export default async function HomePage() {
+  // Fetch real admin data directly on the server to prevent any hardcoded text flash on reload
+  const {
+    categories,
+    products,
+    heroBanner,
+    preloadVideo,
+    midBanner,
+    bottomCta,
+    standardBanner,
+  } = await getHomeServerData();
 
   return (
     <>
-      {/* Intro Preloading Video Modal (Shows only once on first visit) */}
+      {/* 1. Preloader Video Modal from Admin - Shows FIRST on website open */}
       <PreloaderVideoModal setting={preloadVideo} />
 
-      <Header />
+      {/* 2. Main Website Root - Hidden when preloading so it NEVER blinks or flashes */}
+      <div id="meow-website-root" className="flex flex-col min-h-screen">
+        <Header />
 
-      <main className="flex-1">
-        {/* Hero Banner with 3D Exploded Footwear Animation & Video */}
-        {heroBanner && <HeroSection banner={heroBanner} />}
+        <main className="flex-1">
+          {/* Hero Banner with Admin Video & Editorial Headline */}
+          {heroBanner && <HeroSection banner={heroBanner} />}
 
-        {/* Shop by Category (6 Circular Pencil-Sketch Categories) */}
-        <CategorySection categories={categories} />
+          {/* Shop by Category (6 Circular Pencil-Sketch Categories) */}
+          <CategorySection categories={categories} />
 
-        {/* Best Sellers Section with Editorial Story Banner */}
-        <BestSellersSection products={products} />
+          {/* 1. Best Sellers Section (4 Products in a Row) */}
+          <BestSellersSection products={products} />
 
-        {/* New Arrivals Section */}
-        <NewArrivalsSection products={products} />
+          {/* 2. Mid-Page Promotional Banner ("Every Step A Story" between products) */}
+          <MidPageBanner banner={midBanner} />
 
-        {/* Featured Products Section */}
-        <FeaturedSection products={products} />
+          {/* 3. New Arrivals Section (4 Products in a Row) */}
+          <NewArrivalsSection products={products} />
 
-        {/* Brand Story Editorial Section */}
-        <BrandStorySection />
-      </main>
+          {/* 4. The MEOW Standard Brand Story Editorial Section */}
+          <BrandStorySection banner={standardBanner} />
 
-      <Footer />
+          {/* 5. Bottom Newsletter Early Access CTA Section with Customizable Image Background */}
+          <BottomCtaSection banner={bottomCta} />
+        </main>
+
+        {/* Clean Minimal Luxury Footer */}
+        <Footer />
+      </div>
     </>
   );
 }

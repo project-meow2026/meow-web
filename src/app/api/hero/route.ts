@@ -46,10 +46,30 @@ export async function GET(req: NextRequest) {
       if (!activeBanner) {
         activeBanner = rows[0];
       }
+      // If hero banner had the preloader video mistakenly assigned to it, restore hero banner and update preloader setting
+      if (activeBanner?.desktop_video_url && activeBanner.desktop_video_url.includes('1793086833851')) {
+        const preloaderUploadedUrl = activeBanner.desktop_video_url;
+        try {
+          await supabase
+            .from('hero_banners')
+            .update({ desktop_video_url: CLOUDINARY_HERO_VIDEO, updated_at: new Date().toISOString() })
+            .eq('id', activeBanner.id);
+
+          await supabase
+            .from('site_settings')
+            .upsert({
+              key: 'preload_video',
+              value: { is_enabled: true, video_url: preloaderUploadedUrl, auto_close_on_end: true, updated_at: new Date().toISOString() },
+              updated_at: new Date().toISOString(),
+            });
+        } catch (_) {}
+
+        activeBanner.desktop_video_url = CLOUDINARY_HERO_VIDEO;
+      }
     }
 
     const videoUrl =
-      (activeBanner?.desktop_video_url && !activeBanner.desktop_video_url.includes('mixkit.co'))
+      (activeBanner?.desktop_video_url && !activeBanner.desktop_video_url.includes('mixkit.co') && !activeBanner.desktop_video_url.startsWith('/videos/'))
         ? activeBanner.desktop_video_url
         : CLOUDINARY_HERO_VIDEO;
 
@@ -63,10 +83,12 @@ export async function GET(req: NextRequest) {
 
     // Ensure database rows have the active video so future direct queries also see it
     if (activeBanner && (!activeBanner.desktop_video_url || activeBanner.desktop_video_url !== videoUrl)) {
-      await supabase
-        .from('hero_banners')
-        .update({ desktop_video_url: videoUrl, is_published: true, updated_at: new Date().toISOString() })
-        .eq('id', activeBanner.id);
+      try {
+        await supabase
+          .from('hero_banners')
+          .update({ desktop_video_url: videoUrl, is_published: true, updated_at: new Date().toISOString() })
+          .eq('id', activeBanner.id);
+      } catch (_) {}
     }
 
     return NextResponse.json(

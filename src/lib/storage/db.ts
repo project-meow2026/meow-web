@@ -11,7 +11,10 @@ import {
   Order, 
   OrderItem, 
   ContactEnquiry,
-  PreloadVideoSetting
+  PreloadVideoSetting,
+  MidPageBannerSetting,
+  BottomCtaSetting,
+  TheMeowStandardSetting,
 } from '@/lib/supabase/types';
 
 // Initial default categories for MEOW as required by Master Prompt Section 4
@@ -128,8 +131,35 @@ export const INITIAL_ABOUT_SECTION: AboutSection = {
 
 export const INITIAL_PRELOAD_VIDEO: PreloadVideoSetting = {
   is_enabled: true,
-  video_url: 'https://res.cloudinary.com/k7t4skr1/video/upload/v1793007834/meow/hero/desktop/qlqsgtcvyihqq2bsnu0s.mp4',
+  video_url: 'https://res.cloudinary.com/k7t4skr1/video/upload/v1793096513/meow/preloader/ashqa9vo1hihytmejjx0.mp4',
   auto_close_on_end: true,
+};
+
+export const INITIAL_MID_PAGE_BANNER: MidPageBannerSetting = {
+  is_enabled: true,
+  image_url: '/images/banners/exact-mid-banner.png',
+  badge: 'MEOW HERITAGE',
+  heading: 'Every Step\nA Story',
+  subtitle: 'Crafted for modern lives with purpose, comfort and character.',
+  cta_text: 'EXPLORE OUR STORY',
+  cta_link: '/about',
+};
+
+export const INITIAL_BOTTOM_CTA: BottomCtaSetting = {
+  is_enabled: true,
+  background_image_url: '/images/banners/bottom-cta-glass-bg.png',
+  badge: 'MEOW JOURNAL',
+  heading: 'Style Stories,\nNew Arrivals & More',
+  subtitle: 'Be the first to know about new releases, styling ideas and everything MEOW.',
+  button_text: '→',
+};
+
+export const INITIAL_THE_MEOW_STANDARD: TheMeowStandardSetting = {
+  is_enabled: true,
+  image_url: '/images/banners/exact-story-banner.png',
+  badge: 'THE MEOW STANDARD',
+  heading: 'Designed for Calm,\nConfident Living',
+  subtitle: 'We believe what touches your feet should liberate your stride. From natural cork footbeds to pillowy double-density outsoles, every MEOW piece is made for modern life.',
 };
 
 // Storage keys for local persistence (v2 clean keys)
@@ -138,6 +168,9 @@ const STORAGE_KEYS = {
   PRODUCTS: 'meow_db_products_v2',
   HERO: 'meow_db_hero_v2',
   PRELOAD_VIDEO: 'meow_db_preload_video_v2',
+  MID_PAGE_BANNER: 'meow_db_mid_page_banner_v2',
+  BOTTOM_CTA: 'meow_db_bottom_cta_v2',
+  THE_MEOW_STANDARD: 'meow_db_the_meow_standard_v2',
   CONTACT: 'meow_db_contact_v2',
   SOCIAL: 'meow_db_social_v2',
   ABOUT: 'meow_db_about_v2',
@@ -388,6 +421,18 @@ export const dbService = {
       products = all.filter((p) => p.is_active !== false);
     }
 
+    // Strict deduplication
+    const seen = new Set<string>();
+    const deduplicated: Product[] = [];
+    for (const p of products) {
+      const key = (p.id || p.slug || '').trim().toLowerCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        deduplicated.push(p);
+      }
+    }
+    products = deduplicated;
+
     // Apply local filters if needed
     if (filter?.categorySlug) {
       products = products.filter(
@@ -446,23 +491,33 @@ export const dbService = {
       } catch (_) {}
     }
 
-    // Seamlessly merge local products and server products so newly added products are NEVER lost
-    const productMap = new Map<string, Product>();
-    for (const p of localProducts) {
-      const key = p.slug || p.id;
-      if (key) productMap.set(key, p);
-    }
-    for (const p of serverProducts) {
-      const key = p.slug || p.id;
-      if (key) productMap.set(key, p);
+    // Strict deduplication matching by ID or by SLUG (server products are authoritative)
+    const merged: Product[] = [];
+    const seenIds = new Set<string>();
+    const seenSlugs = new Set<string>();
+
+    for (const sp of serverProducts) {
+      if (sp.id) seenIds.add(sp.id);
+      if (sp.slug) seenSlugs.add(sp.slug.toLowerCase().trim());
+      merged.push(sp);
     }
 
-    const merged = Array.from(productMap.values());
+    for (const lp of localProducts) {
+      const idMatch = lp.id && seenIds.has(lp.id);
+      const slugMatch = lp.slug && seenSlugs.has(lp.slug.toLowerCase().trim());
+      if (!idMatch && !slugMatch) {
+        if (lp.id) seenIds.add(lp.id);
+        if (lp.slug) seenSlugs.add(lp.slug.toLowerCase().trim());
+        merged.unshift(lp);
+      }
+    }
 
-    // Auto-sync any local products to Supabase via server API in the background
+    // Auto-sync any unsaved local products to Supabase via server API in the background
     if (typeof window !== 'undefined' && localProducts.length > 0) {
       for (const lp of localProducts) {
-        const existsOnServer = serverProducts.some((sp) => sp.slug === lp.slug || sp.id === lp.id);
+        const existsOnServer = serverProducts.some(
+          (sp) => (sp.id && sp.id === lp.id) || (sp.slug && sp.slug.toLowerCase() === lp.slug?.toLowerCase())
+        );
         if (!existsOnServer) {
           fetch('/api/products', {
             method: 'POST',
@@ -702,12 +757,14 @@ export const dbService = {
   // PRELOAD VIDEO INTRO (Shown once on first website visit)
   // --------------------------------------------------------------------------
   async getPreloadVideo(): Promise<PreloadVideoSetting> {
+    const cached = getLocalData<PreloadVideoSetting>(STORAGE_KEYS.PRELOAD_VIDEO, INITIAL_PRELOAD_VIDEO);
+
     if (typeof window !== 'undefined') {
       try {
         const res = await fetch('/api/preload-video?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
           const resData = await res.json();
-          if (resData.preloadVideo) {
+          if (resData.preloadVideo?.video_url?.trim()) {
             setLocalData(STORAGE_KEYS.PRELOAD_VIDEO, resData.preloadVideo);
             return resData.preloadVideo as PreloadVideoSetting;
           }
@@ -722,7 +779,7 @@ export const dbService = {
           .select('value')
           .eq('key', 'preload_video')
           .single();
-        if (!error && data?.value) {
+        if (!error && data?.value?.video_url?.trim()) {
           setLocalData(STORAGE_KEYS.PRELOAD_VIDEO, data.value);
           return data.value as PreloadVideoSetting;
         }
@@ -731,7 +788,7 @@ export const dbService = {
       }
     }
 
-    return getLocalData<PreloadVideoSetting>(STORAGE_KEYS.PRELOAD_VIDEO, INITIAL_PRELOAD_VIDEO);
+    return cached;
   },
 
   async savePreloadVideo(setting: Partial<PreloadVideoSetting>): Promise<PreloadVideoSetting> {
@@ -770,6 +827,198 @@ export const dbService = {
       } catch (e) {
         console.warn('Failed to update preload video in Supabase:', e);
       }
+    }
+
+    return updated;
+  },
+
+  // --------------------------------------------------------------------------
+  // HOMEPAGE BANNERS (MID-PAGE, BOTTOM CTA, THE MEOW STANDARD)
+  // --------------------------------------------------------------------------
+  async getMidPageBanner(): Promise<MidPageBannerSetting> {
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/banners?type=mid&t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.banner) {
+            setLocalData(STORAGE_KEYS.MID_PAGE_BANNER, resData.banner);
+            return resData.banner as MidPageBannerSetting;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'mid_page_banner')
+          .single();
+        if (!error && data?.value) {
+          setLocalData(STORAGE_KEYS.MID_PAGE_BANNER, data.value);
+          return data.value as MidPageBannerSetting;
+        }
+      } catch (_) {}
+    }
+
+    return getLocalData<MidPageBannerSetting>(STORAGE_KEYS.MID_PAGE_BANNER, INITIAL_MID_PAGE_BANNER);
+  },
+
+  async saveMidPageBanner(setting: Partial<MidPageBannerSetting>): Promise<MidPageBannerSetting> {
+    const current = await this.getMidPageBanner();
+    const updated: MidPageBannerSetting = {
+      ...current,
+      ...setting,
+      updated_at: new Date().toISOString(),
+    };
+    setLocalData(STORAGE_KEYS.MID_PAGE_BANNER, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/admin/banners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'mid', data: updated }),
+        });
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('site_settings').upsert({
+          key: 'mid_page_banner',
+          value: updated,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (_) {}
+    }
+
+    return updated;
+  },
+
+  async getBottomCta(): Promise<BottomCtaSetting> {
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/banners?type=bottom&t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.banner) {
+            setLocalData(STORAGE_KEYS.BOTTOM_CTA, resData.banner);
+            return resData.banner as BottomCtaSetting;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'bottom_cta')
+          .single();
+        if (!error && data?.value) {
+          setLocalData(STORAGE_KEYS.BOTTOM_CTA, data.value);
+          return data.value as BottomCtaSetting;
+        }
+      } catch (_) {}
+    }
+
+    return getLocalData<BottomCtaSetting>(STORAGE_KEYS.BOTTOM_CTA, INITIAL_BOTTOM_CTA);
+  },
+
+  async saveBottomCta(setting: Partial<BottomCtaSetting>): Promise<BottomCtaSetting> {
+    const current = await this.getBottomCta();
+    const updated: BottomCtaSetting = {
+      ...current,
+      ...setting,
+      updated_at: new Date().toISOString(),
+    };
+    setLocalData(STORAGE_KEYS.BOTTOM_CTA, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/admin/banners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'bottom', data: updated }),
+        });
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('site_settings').upsert({
+          key: 'bottom_cta',
+          value: updated,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (_) {}
+    }
+
+    return updated;
+  },
+
+  async getTheMeowStandard(): Promise<TheMeowStandardSetting> {
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/banners?type=standard&t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.banner) {
+            setLocalData(STORAGE_KEYS.THE_MEOW_STANDARD, resData.banner);
+            return resData.banner as TheMeowStandardSetting;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'the_meow_standard')
+          .single();
+        if (!error && data?.value) {
+          setLocalData(STORAGE_KEYS.THE_MEOW_STANDARD, data.value);
+          return data.value as TheMeowStandardSetting;
+        }
+      } catch (_) {}
+    }
+
+    return getLocalData<TheMeowStandardSetting>(STORAGE_KEYS.THE_MEOW_STANDARD, INITIAL_THE_MEOW_STANDARD);
+  },
+
+  async saveTheMeowStandard(setting: Partial<TheMeowStandardSetting>): Promise<TheMeowStandardSetting> {
+    const current = await this.getTheMeowStandard();
+    const updated: TheMeowStandardSetting = {
+      ...current,
+      ...setting,
+      updated_at: new Date().toISOString(),
+    };
+    setLocalData(STORAGE_KEYS.THE_MEOW_STANDARD, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/admin/banners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'standard', data: updated }),
+        });
+      } catch (_) {}
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('site_settings').upsert({
+          key: 'the_meow_standard',
+          value: updated,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (_) {}
     }
 
     return updated;

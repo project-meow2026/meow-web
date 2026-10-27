@@ -11,68 +11,51 @@ interface BestSellersSectionProps {
 }
 
 export const BestSellersSection: React.FC<BestSellersSectionProps> = ({ products }) => {
-  const bestSellers = products.filter((p) => p.is_bestseller).slice(0, 4);
-  const displayProducts = bestSellers.length > 0 ? bestSellers : products.slice(0, 4);
+  // Deduplicate products strictly by ID and Slug so no duplicate product can ever appear
+  const uniqueProducts: Product[] = [];
+  const seen = new Set<string>();
+
+  for (const p of products) {
+    const key = (p.id || p.slug || '').trim().toLowerCase();
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      uniqueProducts.push(p);
+    }
+  }
+
+  // Filter genuine bestsellers, or fallback to genuine catalog products
+  const bestSellers = uniqueProducts.filter((p) => p.is_bestseller);
+  const displayProducts = bestSellers.length > 0 ? bestSellers : uniqueProducts;
+
+  if (displayProducts.length === 0) return null;
 
   return (
-    <section className="py-14 sm:py-20 bg-white border-b border-meow-border/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-end justify-between mb-8 sm:mb-12">
+    <section className="py-8 sm:py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
+        {/* Header matching reference screenshot */}
+        <div className="flex items-end justify-between mb-4 sm:mb-8 pb-2.5 sm:pb-3 border-b border-neutral-100">
           <div>
-            <span className="text-xs uppercase tracking-[0.25em] text-meow-subtle block mb-1 font-sans">
-              Customer Favorites
+            <span className="text-[9px] sm:text-xs uppercase tracking-[0.25em] text-neutral-400 block mb-0.5 sm:mb-1 font-sans">
+              CUSTOMER FAVORITES
             </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl font-medium text-meow-dark tracking-tight">
-              BEST SELLERS
+            <h2 className="font-editorial text-xl sm:text-3xl lg:text-4xl font-normal text-neutral-900 tracking-tight">
+              Best Sellers
             </h2>
           </div>
           <Link
             href="/shop?sort=bestseller"
-            className="group flex items-center gap-1.5 text-xs uppercase tracking-widest font-semibold text-meow-dark hover:text-meow-muted transition-colors pb-1"
+            className="group flex items-center gap-1 text-[10px] sm:text-xs uppercase tracking-widest font-medium text-neutral-800 hover:text-black transition-colors"
           >
             <span>View All</span>
             <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
 
-        {/* Grid with Editorial Promo Banner */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {displayProducts.slice(0, 3).map((product) => (
-            <ProductCard key={product.id} product={product} />
+        {/* Real Products Grid with Responsive Alignment */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 items-stretch">
+          {displayProducts.slice(0, 4).map((product) => (
+            <ProductCard key={product.id || product.slug} product={product} />
           ))}
-
-          {/* Editorial Banner Card matching brand aesthetics */}
-          <div className="col-span-2 sm:col-span-1 lg:col-span-1 relative rounded-lg overflow-hidden border border-meow-border bg-[#1A1918] p-4 sm:p-8 flex flex-col justify-between min-h-[220px] sm:min-h-[360px] group shadow-sm">
-            {/* Subtle luxury ambient texture */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.06),transparent_60%)] pointer-events-none" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,rgba(0,0,0,0.4)_100%)] pointer-events-none" />
-
-            <div className="relative z-10 flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-[0.25em] text-[#D8C7B5] font-medium font-sans">
-                MEOW Heritage
-              </span>
-              <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center">
-                <span className="font-editorial text-xs text-white">M</span>
-              </div>
-            </div>
-
-            <div className="relative z-10 space-y-3">
-              <h3 className="font-editorial text-2xl sm:text-3xl text-white font-medium leading-tight">
-                Every Step A Story
-              </h3>
-              <p className="text-xs text-white/70 font-sans leading-relaxed">
-                Crafted for everyday comfort. Engineered anatomical support.
-              </p>
-              <Link
-                href="/shop"
-                className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-[#E8DCCB] font-semibold pt-1 border-b border-[#E8DCCB]/60 hover:border-white hover:text-white transition-colors"
-              >
-                <span>EXPLORE NOW</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </section>

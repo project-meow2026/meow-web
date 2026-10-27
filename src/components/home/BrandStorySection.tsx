@@ -2,121 +2,119 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Feather, HeartHandshake, Leaf } from 'lucide-react';
+import { ArrowRight, Feather, Waves, Sprout, RefreshCw } from 'lucide-react';
+import { TheMeowStandardSetting } from '@/lib/supabase/types';
+import { INITIAL_THE_MEOW_STANDARD } from '@/lib/storage/db';
 
-export const BrandStorySection: React.FC = () => {
-  const pillars = [
+interface BrandStorySectionProps {
+  banner?: TheMeowStandardSetting | null;
+}
+
+export const BrandStorySection: React.FC<BrandStorySectionProps> = ({ banner = INITIAL_THE_MEOW_STANDARD }) => {
+  const current = banner || INITIAL_THE_MEOW_STANDARD;
+
+  if (current.is_enabled === false) return null;
+
+  const rawUrl = current.image_url || '/images/banners/exact-story-banner.png';
+  const isExactRef = !rawUrl || rawUrl.includes('exact-story-banner') || rawUrl.includes('story-banner');
+
+  const features = [
     {
       icon: Feather,
       title: 'Lightweight Comfort',
-      desc: 'Feather-density EVA shock absorption with every natural step.',
+      desc: 'Feels light. Moves with you.',
     },
     {
-      icon: ShieldCheck,
+      icon: Waves,
       title: 'Anatomical Cork',
-      desc: 'Form-adapting contouring for posture and arch stability.',
+      desc: 'Natural support, all-day ease.',
     },
     {
-      icon: HeartHandshake,
+      icon: Sprout,
       title: 'Mindful Craft',
-      desc: 'Hand-inspected durable finishes built to outlast seasons.',
+      desc: 'Built with purpose.',
     },
     {
-      icon: Leaf,
+      icon: RefreshCw,
       title: 'Conscious Future',
-      desc: 'Sustainable natural cork, recyclable EVA, and vegan materials.',
+      desc: 'Better materials, Brighter tomorrows.',
     },
   ];
 
   return (
-    <section className="py-16 sm:py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          {/* Left Editorial Visual */}
-          <div className="lg:col-span-6 relative">
-            <div className="relative aspect-[4/3] sm:aspect-[16/11] rounded-2xl overflow-hidden border border-meow-border bg-gradient-to-br from-[#FAF9F6] via-[#F4F1EA] to-[#EAE6DD] shadow-sm flex flex-col justify-between p-8 sm:p-12">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-[0.3em] text-meow-subtle font-sans">
-                  CONSCIOUS ATELIER
-                </span>
-                <span className="font-editorial text-sm tracking-wider text-meow-muted">
-                  EST. 2024
-                </span>
-              </div>
+    <section className="w-full bg-[#FDFBF7] border-y border-neutral-200/80 my-8 sm:my-14 overflow-hidden rounded-none">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-0 items-stretch">
+        {/* Left Column: Full-bleed Woman Walking Photograph (50% width, no curves, no hover zoom) */}
+        <div className="relative w-full h-[260px] sm:h-[380px] md:h-[480px] lg:h-[520px] xl:h-[540px] bg-neutral-100 overflow-hidden rounded-none">
+          {isExactRef ? (
+            <img
+              src="/images/banners/exact-story-banner.png"
+              alt={current.heading || 'The MEOW Standard Lifestyle'}
+              className="w-[198%] max-w-none h-full object-cover object-[0%_65%] select-none pointer-events-none"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = '/images/banners/story-banner.jpg';
+                e.currentTarget.className = 'w-full h-full object-cover object-center';
+              }}
+            />
+          ) : (
+            <img
+              src={rawUrl}
+              alt={current.heading || 'The MEOW Standard Lifestyle'}
+              className="w-full h-full object-cover object-center"
+              loading="lazy"
+            />
+          )}
+        </div>
 
-              <div className="space-y-3 max-w-sm">
-                <div className="w-12 h-0.5 bg-meow-terracotta" />
-                <h3 className="font-editorial text-3xl sm:text-4xl text-meow-dark font-medium leading-tight">
-                  Crafted for a Bolder You.
-                </h3>
-                <p className="text-xs sm:text-sm text-meow-muted font-sans leading-relaxed">
-                  Sculpted footbeds, ethical materials, and featherlight durability designed to elevate every daily step.
-                </p>
-              </div>
+        {/* Right Column: Editorial Standards & 2x2 Feature Grid (50% width, no curves) */}
+        <div className="p-5 sm:p-10 md:p-12 lg:p-14 xl:p-16 flex flex-col justify-center items-start bg-[#FDFBF7] h-full rounded-none">
+          <span className="text-[9px] sm:text-[11px] uppercase tracking-[0.25em] text-[#7A756F] font-sans font-medium mb-2 sm:mb-3 block">
+            {current.badge || 'THE MEOW STANDARD'}
+          </span>
 
-              <div className="flex items-center gap-4 text-xs font-mono text-meow-subtle border-t border-meow-border/60 pt-4">
-                <span>01 EVA Cushioning</span>
-                <span>•</span>
-                <span>02 Natural Cork</span>
-                <span>•</span>
-                <span>03 Vegan Nubuck</span>
-              </div>
-            </div>
+          <h2 className="font-editorial text-2xl sm:text-4xl md:text-[42px] font-normal text-[#1A1A1A] leading-[1.18] tracking-tight mb-3 sm:mb-4 whitespace-pre-line">
+            {current.heading || 'Designed for Calm,\nConfident Living'}
+          </h2>
 
-            {/* Overlapping Floating Badge */}
-            <div className="absolute -bottom-6 right-6 bg-white p-4 sm:p-6 rounded-xl border border-meow-border shadow-lg max-w-xs hidden sm:block">
-              <span className="font-editorial text-2xl font-semibold text-meow-dark block leading-none mb-1">
-                MEOW
-              </span>
-              <p className="text-xs text-meow-muted">
-                100% Focused on Foot Wellness & Minimalist Aesthetics
-              </p>
-            </div>
-          </div>
+          <p className="text-xs sm:text-sm text-[#5C564F] font-sans leading-relaxed max-w-xl mb-5 sm:mb-7">
+            {current.subtitle ||
+              'We believe what touches your feet should liberate your stride. From natural cork footbeds to pillowy double-density outsoles, every MEOW piece is made for modern life.'}
+          </p>
 
-          {/* Right Brand Pillars */}
-          <div className="lg:col-span-6 space-y-6">
-            <div className="space-y-3">
-              <span className="text-xs uppercase tracking-[0.25em] text-meow-subtle font-sans">
-                The MEOW Standard
-              </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl lg:text-5xl font-medium text-meow-dark tracking-tight leading-tight">
-                Designed for Calm, Confident Living
-              </h2>
-              <p className="text-sm sm:text-base text-meow-muted font-sans leading-relaxed">
-                We believe what touches your feet should liberate your stride. From natural cork footbeds to pillowy double-density outsoles, every MEOW piece is made for modern life.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
-              {pillars.map((p) => {
-                const Icon = p.icon;
-                return (
-                  <div key={p.title} className="p-4 rounded-lg border border-meow-border bg-[#FAF9F6] space-y-1.5">
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-meow-dark border border-meow-border">
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <h4 className="text-xs uppercase tracking-wider font-semibold text-meow-dark">
-                      {p.title}
+          {/* 2x2 Feature Grid - Sharp Rectangular Corners, Perfect Mobile Alignment */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 w-full mb-5 sm:mb-7">
+            {features.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className="p-3 sm:p-4 border border-[#EFECE6] bg-white flex items-center gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] rounded-none"
+                >
+                  <div className="w-8 h-8 rounded-none bg-[#FAF8F5] flex items-center justify-center flex-shrink-0 text-[#1A1A1A]">
+                    <Icon className="w-4 h-4 stroke-[1.5] flex-shrink-0" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-bold text-[#1A1A1A] leading-snug">
+                      {item.title}
                     </h4>
-                    <p className="text-xs text-meow-muted leading-relaxed">
-                      {p.desc}
+                    <p className="text-[11px] text-[#7A756F] font-sans mt-0.5 leading-snug">
+                      {item.desc}
                     </p>
                   </div>
-                );
-              })}
-            </div>
-
-            <div className="pt-2">
-              <Link
-                href="/about"
-                className="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-meow-dark hover:text-meow-muted transition-colors border-b border-meow-dark pb-1"
-              >
-                <span>Read Our Story</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+                </div>
+              );
+            })}
           </div>
+
+          {/* Read Our Story Link */}
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs uppercase tracking-[0.2em] font-semibold text-[#1A1A1A] border-b border-[#1A1A1A] pb-0.5 hover:text-neutral-600 hover:border-neutral-600 transition-colors group"
+          >
+            <span>READ OUR STORY</span>
+            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </div>
     </section>

@@ -3,25 +3,43 @@ import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
+import fs from 'fs/promises';
+import path from 'path';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const supabase = getSupabaseServerClient();
 
-    if (!supabase) {
-      return NextResponse.json({ preloadVideo: body, note: 'Saved locally' });
+    // 1. Guaranteed server filesystem persistence
+    try {
+      const settingsDir = path.join(process.cwd(), 'public', 'settings');
+      await fs.mkdir(settingsDir, { recursive: true });
+      await fs.writeFile(
+        path.join(settingsDir, 'preload-video.json'),
+        JSON.stringify(body, null, 2),
+        'utf-8'
+      );
+    } catch (fsErr) {
+      console.warn('Could not save preload-video.json to disk:', fsErr);
     }
 
-    const { error } = await supabase
-      .from('site_settings')
-      .upsert({
-        key: 'preload_video',
-        value: body,
-        updated_at: new Date().toISOString(),
-      });
+    // 2. Supabase database persistence
+    const supabase = getSupabaseServerClient();
+    if (supabase) {
+      const { error } = await supabase
+        .from('site_settings')
+        .upsert(
+          {
+            key: 'preload_video',
+            value: body,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' }
+        );
 
-    if (error) {
-      console.warn('Supabase upsert preload_video warning:', error.message);
+      if (error) {
+        console.warn('Supabase upsert preload_video warning:', error.message);
+      }
     }
 
     return NextResponse.json({ success: true, preloadVideo: body });

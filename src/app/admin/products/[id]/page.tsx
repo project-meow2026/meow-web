@@ -121,7 +121,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       });
 
       router.push('/admin/products');
-      router.refresh();
     } catch (err: any) {
       alert(`Save error: ${err.message}`);
     } finally {
@@ -133,7 +132,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     if (confirm(`Are you sure you want to permanently delete "${name}"?`)) {
       await dbService.deleteProduct(params.id);
       router.push('/admin/products');
-      router.refresh();
     }
   };
 

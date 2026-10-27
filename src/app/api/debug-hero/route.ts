@@ -9,8 +9,9 @@ export async function GET() {
     if (!supabase) {
       return NextResponse.json({ error: 'No supabase' });
     }
-    const { data, error } = await supabase.from('hero_banners').select('*');
-    return NextResponse.json({ rows: data, error });
+    const { data: heroData } = await supabase.from('hero_banners').select('*');
+    const { data: settingsData } = await supabase.from('site_settings').select('*');
+    return NextResponse.json({ hero: heroData, settings: settingsData });
   } catch (err: any) {
     return NextResponse.json({ error: err.message });
   }

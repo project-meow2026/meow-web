@@ -67,7 +67,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
           playsInline
           controls={false}
           preload="auto"
-          className="w-full h-full object-cover object-center scale-[0.88] sm:scale-[1.02] origin-center transition-transform duration-700"
+          className="w-full h-full object-cover object-center scale-100 transition-transform duration-700"
         >
           <source src={videoUrl} type="video/mp4" />
           <source src={videoUrl} type="video/webm" />
@@ -87,13 +87,41 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
             <span>{banner.badge || 'SPRING / SUMMER'}</span>
           </div>
 
-          {/* Main Headline */}
-          <h1 className="font-editorial text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-white leading-[1.08] sm:leading-[1.05] tracking-tight drop-shadow-lg">
-            {banner.heading || 'THE ART OF DRESSING WELL'}
+          {/* Main Headline - In mobile view cuts into elegant editorial parts */}
+          <h1 className="font-editorial text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light text-white leading-[1.08] sm:leading-[1.05] tracking-tight drop-shadow-lg max-w-[320px] xs:max-w-[380px] sm:max-w-none">
+            {(() => {
+              const text = (banner.heading || 'THE ART OF DRESSING WELL').trim();
+              if (text.includes('\n')) {
+                return text.split('\n').map((line, idx) => (
+                  <span key={idx} className="block">
+                    {line}
+                  </span>
+                ));
+              }
+              if (text.toUpperCase() === 'THE ART OF DRESSING WELL') {
+                return (
+                  <>
+                    <span className="block">THE ART OF</span>
+                    <span className="block">DRESSING WELL</span>
+                  </>
+                );
+              }
+              const words = text.split(' ');
+              if (words.length >= 4) {
+                const mid = Math.ceil(words.length / 2);
+                return (
+                  <>
+                    <span className="block sm:inline">{words.slice(0, mid).join(' ')} </span>
+                    <span className="block sm:inline">{words.slice(mid).join(' ')}</span>
+                  </>
+                );
+              }
+              return <span>{text}</span>;
+            })()}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xs sm:text-lg md:text-xl text-white/90 max-w-xl font-sans font-light leading-relaxed drop-shadow-md">
+          <p className="text-xs sm:text-lg md:text-xl text-white/90 max-w-[280px] sm:max-w-xl font-sans font-light leading-relaxed drop-shadow-md">
             {banner.subtitle || 'Quiet confidence. Timeless comfort.'}
           </p>
 

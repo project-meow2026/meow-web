@@ -88,6 +88,39 @@ export interface PreloadVideoSetting {
   updated_at?: string;
 }
 
+export interface MidPageBannerSetting {
+  id?: string;
+  is_enabled: boolean;
+  image_url: string;
+  badge: string;
+  heading: string;
+  subtitle: string;
+  cta_text: string;
+  cta_link: string;
+  updated_at?: string;
+}
+
+export interface BottomCtaSetting {
+  id?: string;
+  is_enabled: boolean;
+  background_image_url: string;
+  badge: string;
+  heading: string;
+  subtitle: string;
+  button_text: string;
+  updated_at?: string;
+}
+
+export interface TheMeowStandardSetting {
+  id?: string;
+  is_enabled: boolean;
+  image_url: string;
+  badge: string;
+  heading: string;
+  subtitle: string;
+  updated_at?: string;
+}
+
 export interface ContactInfoSetting {
   phone: string;
   whatsapp: string;

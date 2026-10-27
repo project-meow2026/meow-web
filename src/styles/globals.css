@@ -111,3 +111,12 @@ body {
   border-color: #111111;
   box-shadow: 0 0 0 1px #111111;
 }
+
+/* Hide scrollbar for swatches and horizontal carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
