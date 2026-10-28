@@ -32,24 +32,32 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type') || 'all';
 
+    // 1. Read persistent disk backup first
+    let diskBanners: Record<string, any> = {};
+    try {
+      const bannersPath = path.join(process.cwd(), 'public', 'settings', 'banners.json');
+      const raw = await fs.readFile(bannersPath, 'utf-8');
+      diskBanners = JSON.parse(raw);
+    } catch (_) {}
+
     const supabase = getSupabaseServerClient();
     if (!supabase) {
-      if (type === 'shop') return NextResponse.json({ banner: INITIAL_SHOP_HERO_BANNER });
-      if (type === 'mid') return NextResponse.json({ banner: INITIAL_MID_PAGE_BANNER });
-      if (type === 'bottom') return NextResponse.json({ banner: INITIAL_BOTTOM_CTA });
-      if (type === 'standard') return NextResponse.json({ banner: INITIAL_THE_MEOW_STANDARD });
+      if (type === 'shop') return NextResponse.json({ banner: diskBanners.shop_hero_banner || INITIAL_SHOP_HERO_BANNER });
+      if (type === 'mid') return NextResponse.json({ banner: diskBanners.mid_page_banner || INITIAL_MID_PAGE_BANNER });
+      if (type === 'bottom') return NextResponse.json({ banner: diskBanners.bottom_cta || INITIAL_BOTTOM_CTA });
+      if (type === 'standard') return NextResponse.json({ banner: diskBanners.the_meow_standard || INITIAL_THE_MEOW_STANDARD });
       return NextResponse.json({
-        shop: INITIAL_SHOP_HERO_BANNER,
-        mid: INITIAL_MID_PAGE_BANNER,
-        bottom: INITIAL_BOTTOM_CTA,
-        standard: INITIAL_THE_MEOW_STANDARD,
+        shop: diskBanners.shop_hero_banner || INITIAL_SHOP_HERO_BANNER,
+        mid: diskBanners.mid_page_banner || INITIAL_MID_PAGE_BANNER,
+        bottom: diskBanners.bottom_cta || INITIAL_BOTTOM_CTA,
+        standard: diskBanners.the_meow_standard || INITIAL_THE_MEOW_STANDARD,
       });
     }
 
     if (type === 'shop') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'shop_hero_banner').single();
       return NextResponse.json(
-        { banner: data?.value || INITIAL_SHOP_HERO_BANNER },
+        { banner: diskBanners.shop_hero_banner || data?.value || INITIAL_SHOP_HERO_BANNER },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -57,7 +65,7 @@ export async function GET(req: NextRequest) {
     if (type === 'mid') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'mid_page_banner').single();
       return NextResponse.json(
-        { banner: data?.value || INITIAL_MID_PAGE_BANNER },
+        { banner: diskBanners.mid_page_banner || data?.value || INITIAL_MID_PAGE_BANNER },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -65,7 +73,7 @@ export async function GET(req: NextRequest) {
     if (type === 'bottom') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'bottom_cta').single();
       return NextResponse.json(
-        { banner: data?.value || INITIAL_BOTTOM_CTA },
+        { banner: diskBanners.bottom_cta || data?.value || INITIAL_BOTTOM_CTA },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -73,7 +81,7 @@ export async function GET(req: NextRequest) {
     if (type === 'standard') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'the_meow_standard').single();
       return NextResponse.json(
-        { banner: data?.value || INITIAL_THE_MEOW_STANDARD },
+        { banner: diskBanners.the_meow_standard || data?.value || INITIAL_THE_MEOW_STANDARD },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -88,10 +96,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        shop: map.get('shop_hero_banner') || INITIAL_SHOP_HERO_BANNER,
-        mid: map.get('mid_page_banner') || INITIAL_MID_PAGE_BANNER,
-        bottom: map.get('bottom_cta') || INITIAL_BOTTOM_CTA,
-        standard: map.get('the_meow_standard') || INITIAL_THE_MEOW_STANDARD,
+        shop: diskBanners.shop_hero_banner || map.get('shop_hero_banner') || INITIAL_SHOP_HERO_BANNER,
+        mid: diskBanners.mid_page_banner || map.get('mid_page_banner') || INITIAL_MID_PAGE_BANNER,
+        bottom: diskBanners.bottom_cta || map.get('bottom_cta') || INITIAL_BOTTOM_CTA,
+        standard: diskBanners.the_meow_standard || map.get('the_meow_standard') || INITIAL_THE_MEOW_STANDARD,
       },
       { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
     );

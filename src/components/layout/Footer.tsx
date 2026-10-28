@@ -1,15 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MessageCircle, ArrowRight, Check, Instagram, Facebook, Twitter, ChevronDown } from 'lucide-react';
+import { dbService, INITIAL_CONTACT_INFO, INITIAL_SOCIAL_LINKS } from '@/lib/storage/db';
+import { ContactInfoSetting, SocialLinksSetting } from '@/lib/supabase/types';
 
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [collectionsOpen, setCollectionsOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(false);
+  const [contactInfo, setContactInfo] = useState<ContactInfoSetting>(INITIAL_CONTACT_INFO);
+  const [socialLinks, setSocialLinks] = useState<SocialLinksSetting>(INITIAL_SOCIAL_LINKS);
+
+  useEffect(() => {
+    Promise.all([dbService.getContactInfo(), dbService.getSocialLinks()])
+      .then(([info, social]) => {
+        if (info) setContactInfo(info);
+        if (social) setSocialLinks(social);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +72,7 @@ export const Footer: React.FC = () => {
             {/* Concierge Pill matching reference screenshot */}
             <div className="pt-1">
               <a
-                href="https://wa.me/919876543210"
+                href={`https://wa.me/${(contactInfo.whatsapp || '919876543210').replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E6F4EA] text-[#137333] hover:bg-[#D4EDDA] text-xs font-semibold tracking-wide transition-colors"
@@ -176,13 +189,31 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4 text-neutral-500">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors" aria-label="Instagram">
+            <a
+              href={socialLinks.instagram || 'https://instagram.com'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-neutral-900 transition-colors"
+              aria-label="Instagram"
+            >
               <Instagram className="w-4 h-4" />
             </a>
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors" aria-label="Facebook">
+            <a
+              href={socialLinks.facebook || 'https://facebook.com'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-neutral-900 transition-colors"
+              aria-label="Facebook"
+            >
               <Facebook className="w-4 h-4" />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-neutral-900 transition-colors" aria-label="Twitter">
+            <a
+              href={socialLinks.youtube || socialLinks.pinterest || 'https://twitter.com'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-neutral-900 transition-colors"
+              aria-label="Social"
+            >
               <Twitter className="w-4 h-4" />
             </a>
           </div>

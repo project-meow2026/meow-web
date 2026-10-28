@@ -156,10 +156,13 @@ export interface AboutSection {
   heading: string;
   story_summary: string;
   story_detail: string;
-  banner_image_url: string;
+  banner_image_url: string | null;
   craft_heading: string;
   craft_body: string;
-  craft_image_url: string;
+  craft_image_url: string | null;
+  values_image_url?: string | null;
+  values_image_caption?: string;
+  vision_image_url?: string | null;
   mission_text: string;
   vision_text: string;
   values: Array<{

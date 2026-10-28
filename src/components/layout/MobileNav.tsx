@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { X, ArrowRight, ShieldCheck, Heart, User } from 'lucide-react';
@@ -12,18 +12,45 @@ interface MobileNavProps {
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
+  // Lock background page scroll while mobile side menu is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const scrollY = window.scrollY;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalBodyPosition = document.body.style.position;
+    const originalBodyTop = document.body.style.top;
+    const originalBodyWidth = document.body.style.width;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overflow = originalBodyOverflow;
+      document.body.style.position = originalBodyPosition;
+      document.body.style.top = originalBodyTop;
+      document.body.style.width = originalBodyWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex md:hidden">
+    <div className="fixed inset-0 z-50 flex md:hidden overflow-hidden">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity touch-none"
         onClick={onClose}
       />
 
       {/* Drawer */}
-      <div className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between z-10 p-6 overflow-y-auto">
+      <div className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between z-10 p-6 overflow-y-auto overscroll-contain">
         <div>
           {/* Header */}
           <div className="flex items-center justify-between pb-6 border-b border-meow-border">
@@ -82,6 +109,13 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
             >
               Contact Us
             </Link>
+            <Link
+              href="/profile"
+              onClick={onClose}
+              className="block text-base uppercase tracking-wider font-medium text-meow-dark hover:text-meow-muted"
+            >
+              My Profile & Orders
+            </Link>
           </nav>
 
           {/* The 6 Collections Quick Access */}
@@ -108,12 +142,12 @@ export const MobileNav: React.FC<MobileNavProps> = ({ isOpen, onClose }) => {
         {/* Footer shortcuts */}
         <div className="pt-6 border-t border-meow-border space-y-3">
           <Link
-            href="/admin"
+            href="/profile"
             onClick={onClose}
             className="flex items-center gap-2 text-xs font-medium text-meow-muted hover:text-meow-dark"
           >
             <User className="w-4 h-4" />
-            <span>Store Admin CMS</span>
+            <span>My Profile & Orders</span>
           </Link>
           <div className="text-[11px] text-meow-subtle flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5" />

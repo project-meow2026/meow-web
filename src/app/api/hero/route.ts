@@ -10,10 +10,27 @@ const CLOUDINARY_HERO_VIDEO = 'https://res.cloudinary.com/k7t4skr1/video/upload/
 
 export async function GET(req: NextRequest) {
   try {
+    // 1. Check persistent disk backup first
+    let diskHero: any = null;
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const heroPath = path.join(process.cwd(), 'public', 'settings', 'hero.json');
+      const raw = await fs.readFile(heroPath, 'utf-8');
+      diskHero = JSON.parse(raw);
+    } catch (_) {}
+
     const supabase = getSupabaseServerClient();
     if (!supabase) {
       return NextResponse.json(
-        { hero: { ...INITIAL_HERO_BANNER, desktop_video_url: CLOUDINARY_HERO_VIDEO } },
+        { hero: diskHero || { ...INITIAL_HERO_BANNER, desktop_video_url: CLOUDINARY_HERO_VIDEO } },
+        { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+      );
+    }
+
+    if (diskHero) {
+      return NextResponse.json(
+        { hero: diskHero },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }

@@ -301,9 +301,9 @@ function ShopContent() {
         {/* Content Container */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Filter Sidebar (Desktop) - STICKY so it moves along with viewport when scrolling */}
+            {/* Left Filter Sidebar (Desktop) - Scrolls naturally with the products */}
             <div className="hidden lg:block lg:col-span-3">
-              <div className="sticky top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto pr-3 pb-8 scrollbar-thin">
+              <div className="pr-3 pb-8">
                 <FilterSidebar
                   categories={categories}
                   filters={filters}

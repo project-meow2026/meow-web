@@ -33,6 +33,29 @@ export const CheckoutForm: React.FC = () => {
   const [orderNotes, setOrderNotes] = useState('');
   const [saveAddress, setSaveAddress] = useState(true);
 
+  // Load saved customer profile on mount
+  React.useEffect(() => {
+    try {
+      const savedProfile = localStorage.getItem('meow_customer_profile_v1');
+      if (savedProfile) {
+        const parsed = JSON.parse(savedProfile);
+        if (parsed.fullName) setFullName(parsed.fullName);
+        if (parsed.phoneNumber) setPhoneNumber(parsed.phoneNumber);
+        if (parsed.whatsappNumber) {
+          setWhatsappNumber(parsed.whatsappNumber);
+          if (parsed.phoneNumber && parsed.whatsappNumber !== parsed.phoneNumber) {
+            setSameWhatsapp(false);
+          }
+        }
+        if (parsed.emailAddress) setEmailAddress(parsed.emailAddress);
+        if (parsed.address) setAddress(parsed.address);
+        if (parsed.city) setCity(parsed.city);
+        if (parsed.state) setState(parsed.state);
+        if (parsed.pincode) setPincode(parsed.pincode);
+      }
+    } catch (_) {}
+  }, []);
+
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -100,6 +123,32 @@ export const CheckoutForm: React.FC = () => {
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to place order');
       }
+
+      // Persist order to client localStorage for immediate profile & order confirmation access
+      try {
+        if (data.order) {
+          const existingRaw = localStorage.getItem('meow_db_orders_v2');
+          const existingOrders = existingRaw ? JSON.parse(existingRaw) : [];
+          const filteredOrders = existingOrders.filter((o: any) => o.order_ref !== data.order.order_ref);
+          localStorage.setItem('meow_db_orders_v2', JSON.stringify([data.order, ...filteredOrders]));
+        }
+        if (saveAddress) {
+          localStorage.setItem(
+            'meow_customer_profile_v1',
+            JSON.stringify({
+              fullName: fullName.trim(),
+              phoneNumber: phoneNumber.trim(),
+              whatsappNumber: finalWhatsapp,
+              emailAddress: emailAddress.trim(),
+              address: address.trim(),
+              city: city.trim(),
+              state,
+              pincode: pincode.trim(),
+              country,
+            })
+          );
+        }
+      } catch (_) {}
 
       // Clear cart items
       clearCart();

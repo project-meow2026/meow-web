@@ -39,16 +39,16 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, productN
                 key={`${img}-${idx}`}
                 type="button"
                 onClick={() => setActiveImageIndex(idx)}
-                className={`relative w-16 h-16 md:w-20 md:h-20 rounded-md overflow-hidden border-2 transition-all flex-shrink-0 bg-[#FAF9F6] p-1 flex items-center justify-center ${
+                className={`relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 bg-[#F7F6F2] ${
                   isSelected
                     ? 'border-meow-dark ring-1 ring-meow-dark'
-                    : 'border-meow-border hover:border-meow-muted opacity-75'
+                    : 'border-meow-border hover:border-meow-muted opacity-80 hover:opacity-100'
                 }`}
               >
                 <img
                   src={img}
                   alt={`${productName} thumbnail ${idx + 1}`}
-                  className="max-w-full max-h-full object-contain mix-blend-multiply select-none"
+                  className="w-full h-full object-cover object-center select-none"
                 />
               </button>
             );
@@ -57,12 +57,12 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, productN
       )}
 
       {/* Main Image Stage */}
-      <div className="relative flex-1 w-full aspect-[4/5] bg-[#FAF9F6] rounded-xl overflow-hidden border border-meow-border flex items-center justify-center p-4 group">
+      <div className="relative flex-1 w-full aspect-[4/5] bg-[#F7F6F2] rounded-xl overflow-hidden border border-meow-border flex items-center justify-center group">
         {activeImage ? (
           <img
             src={activeImage}
             alt={productName}
-            className="max-w-full max-h-full object-contain mix-blend-multiply drop-shadow-md select-none transition-transform duration-500 ease-out group-hover:scale-105"
+            className="w-full h-full object-cover object-center select-none transition-transform duration-500 ease-out group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#FAF9F6] to-[#ECE8E1]">

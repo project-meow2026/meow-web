@@ -58,25 +58,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: 'Supabase server not configured' }, { status: 503 });
-    }
-
     const body = await req.json();
-
-    // Check if a row already exists in hero_banners table
-    const { data: existingRows, error: checkError } = await supabase
-      .from('hero_banners')
-      .select('id')
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    if (checkError) {
-      console.warn('Check existing hero banner error:', checkError);
-    }
-
-    const existingId = existingRows && existingRows.length > 0 ? existingRows[0].id : null;
 
     const payload = {
       badge: body.badge || 'SPRING / SUMMER',
@@ -91,7 +73,35 @@ export async function POST(req: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    let result;
+    // 1. Always write to persistent disk backup first
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const settingsDir = path.join(process.cwd(), 'public', 'settings');
+      await fs.mkdir(settingsDir, { recursive: true });
+      await fs.writeFile(path.join(settingsDir, 'hero.json'), JSON.stringify(payload, null, 2), 'utf-8');
+    } catch (_) {}
+
+    // 2. Also update Supabase if configured
+    const supabase = getSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ success: true, hero: payload });
+    }
+
+    // Check if a row already exists in hero_banners table
+    const { data: existingRows, error: checkError } = await supabase
+      .from('hero_banners')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (checkError) {
+      console.warn('Check existing hero banner error:', checkError);
+    }
+
+    const existingId = existingRows && existingRows.length > 0 ? existingRows[0].id : null;
+
+    let result = payload;
     if (existingId) {
       const { data, error } = await supabase
         .from('hero_banners')
@@ -100,11 +110,9 @@ export async function POST(req: NextRequest) {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating hero banner in Supabase:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      if (!error && data) {
+        result = data;
       }
-      result = data;
     } else {
       const { data, error } = await supabase
         .from('hero_banners')
@@ -112,21 +120,10 @@ export async function POST(req: NextRequest) {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error inserting hero banner in Supabase:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      if (!error && data) {
+        result = data;
       }
-      result = data;
     }
-
-    // Write to persistent disk backup
-    try {
-      const fs = await import('fs/promises');
-      const path = await import('path');
-      const settingsDir = path.join(process.cwd(), 'public', 'settings');
-      await fs.mkdir(settingsDir, { recursive: true });
-      await fs.writeFile(path.join(settingsDir, 'hero.json'), JSON.stringify(result, null, 2), 'utf-8');
-    } catch (_) {}
 
     return NextResponse.json({ success: true, hero: result });
   } catch (error: any) {

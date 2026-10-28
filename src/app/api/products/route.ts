@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -8,14 +10,31 @@ export const fetchCache = 'force-no-store';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NO_CACHE_HEADERS = { 'Cache-Control': 'no-store, no-cache, must-revalidate' };
 
+async function readDiskProducts(): Promise<any[]> {
+  try {
+    const filePath = path.join(process.cwd(), 'public', 'settings', 'products.json');
+    const raw = await fs.readFile(filePath, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch (_) {}
+  return [];
+}
+
+async function writeDiskProducts(products: any[]) {
+  try {
+    const settingsDir = path.join(process.cwd(), 'public', 'settings');
+    await fs.mkdir(settingsDir, { recursive: true });
+    await fs.writeFile(
+      path.join(settingsDir, 'products.json'),
+      JSON.stringify(products, null, 2),
+      'utf-8'
+    );
+  } catch (_) {}
+}
+
 // GET: Fetch products with filters or by id/slug
 export async function GET(req: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ products: [] }, { headers: NO_CACHE_HEADERS });
-    }
-
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const slug = searchParams.get('slug');
@@ -25,6 +44,28 @@ export async function GET(req: NextRequest) {
     const bestseller = searchParams.get('bestseller') === 'true';
     const newArrival = searchParams.get('newArrival') === 'true';
     const featured = searchParams.get('featured') === 'true';
+
+    const diskProducts = await readDiskProducts();
+    const supabase = getSupabaseServerClient();
+    if (!supabase) {
+      if (id) {
+        const found = diskProducts.find((p) => p.id === id || p.slug === id) || null;
+        return NextResponse.json({ product: found }, { headers: NO_CACHE_HEADERS });
+      }
+      if (slug) {
+        const found = diskProducts.find((p) => p.slug === slug) || null;
+        return NextResponse.json({ product: found }, { headers: NO_CACHE_HEADERS });
+      }
+      let list = [...diskProducts];
+      if (!admin && activeOnly) list = list.filter((p) => p.is_active !== false);
+      if (bestseller) list = list.filter((p) => p.is_bestseller);
+      if (newArrival) list = list.filter((p) => p.is_new_arrival);
+      if (featured) list = list.filter((p) => p.is_featured);
+      if (categorySlug) {
+        list = list.filter((p) => p.category?.slug === categorySlug || p.category_id === categorySlug);
+      }
+      return NextResponse.json({ products: list }, { headers: NO_CACHE_HEADERS });
+    }
 
     // Single product by ID
     if (id) {
@@ -109,14 +150,35 @@ export async function GET(req: NextRequest) {
 // POST: Upsert product with service role client (bypasses RLS and safely resolves foreign keys)
 export async function POST(req: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: 'Supabase server not configured' }, { status: 503 });
-    }
-
     const body = await req.json();
     if (!body.name) {
       return NextResponse.json({ error: 'Product name is required' }, { status: 400 });
+    }
+
+    const cleanSlug =
+      (body.slug || body.name || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-') || `product-${Date.now()}`;
+
+    // Save to disk backup
+    const diskProducts = await readDiskProducts();
+    const diskIdx = diskProducts.findIndex((p) => p.id === body.id || p.slug === cleanSlug);
+    const localProd = {
+      ...(diskIdx >= 0 ? diskProducts[diskIdx] : {}),
+      ...body,
+      id: body.id || (diskIdx >= 0 ? diskProducts[diskIdx].id : `prod-${Date.now()}`),
+      slug: cleanSlug,
+      updated_at: new Date().toISOString(),
+    };
+    if (diskIdx >= 0) diskProducts[diskIdx] = localProd;
+    else diskProducts.unshift(localProd);
+    await writeDiskProducts(diskProducts);
+
+    const supabase = getSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ success: true, product: localProd });
     }
 
     const {
@@ -139,13 +201,6 @@ export async function POST(req: NextRequest) {
       variants,
       images,
     } = body;
-
-    const cleanSlug =
-      (slug || name || '')
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-') || `product-${Date.now()}`;
 
     // Safely resolve category_id to an existing UUID in categories table
     let resolvedCategoryId: string | null = null;
@@ -318,16 +373,20 @@ export async function POST(req: NextRequest) {
 // DELETE: Delete product by id or slug
 export async function DELETE(req: NextRequest) {
   try {
-    const supabase = getSupabaseServerClient();
-    if (!supabase) {
-      return NextResponse.json({ error: 'Supabase server not configured' }, { status: 503 });
-    }
-
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
     if (!id) {
       return NextResponse.json({ error: 'Product id or slug required' }, { status: 400 });
+    }
+
+    const diskProducts = await readDiskProducts();
+    const filtered = diskProducts.filter((p) => p.id !== id && p.slug !== id);
+    await writeDiskProducts(filtered);
+
+    const supabase = getSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ success: true });
     }
 
     let query = supabase.from('products').delete();

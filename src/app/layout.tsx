@@ -74,11 +74,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               html.meow-preloading {
-                background-color: #FFFFFF !important;
+                background-color: #FEFEFE !important;
                 overflow: hidden !important;
               }
               html.meow-preloading body {
-                background-color: #FFFFFF !important;
+                background-color: #FEFEFE !important;
               }
               /* Hide website completely when opening fresh so it NEVER blinks or shows first */
               html.meow-preloading #meow-website-root {
@@ -91,9 +91,11 @@ export default function RootLayout({
                 display: flex !important;
                 visibility: visible !important;
                 opacity: 1 !important;
+                background-color: #FEFEFE !important;
               }
               #meow-preloader-root {
                 display: none;
+                background-color: #FEFEFE !important;
               }
               #meow-preloader-root video::-webkit-media-controls,
               #meow-preloader-root video::-webkit-media-controls-enclosure,
@@ -105,7 +107,7 @@ export default function RootLayout({
                 border: 0 !important;
                 outline: none !important;
                 box-shadow: none !important;
-                background-color: #FFFFFF !important;
+                background-color: #FEFEFE !important;
               }
             `,
           }}

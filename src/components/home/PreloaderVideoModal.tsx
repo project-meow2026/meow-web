@@ -114,13 +114,17 @@ export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
   return (
     <div
       id="meow-preloader-root"
-      className={`fixed inset-0 z-[999999] bg-white flex items-center justify-center overflow-hidden transition-opacity duration-800 ease-in-out select-none ${
+      className={`fixed inset-0 z-[999999] bg-[#FEFEFE] flex items-center justify-center overflow-hidden transition-opacity duration-800 ease-in-out select-none ${
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
+      style={{ backgroundColor: '#FEFEFE' }}
       aria-hidden="true"
     >
       {/* Video frame wrapper: crops 1-2px edge macroblocks/lines from encoder or subpixel rendering */}
-      <div className="relative flex items-center justify-center overflow-hidden max-w-full max-h-screen bg-white scale-[1.45] sm:scale-100 transition-transform duration-500">
+      <div
+        className="relative flex items-center justify-center overflow-hidden max-w-full max-h-screen bg-[#FEFEFE] scale-[1.45] sm:scale-100 transition-transform duration-500"
+        style={{ backgroundColor: '#FEFEFE' }}
+      >
         <video
           ref={videoRef}
           key={effectiveVideoUrl}
@@ -132,11 +136,12 @@ export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
           preload="auto"
           onEnded={dismiss}
           onError={dismiss}
-          className="block max-w-full max-h-screen w-auto h-auto object-cover pointer-events-none bg-white scale-[1.05] origin-center"
+          className="block max-w-full max-h-screen w-auto h-auto object-cover pointer-events-none bg-[#FEFEFE] scale-[1.05] origin-center"
           style={{
             border: 'none',
             outline: 'none',
             boxShadow: 'none',
+            backgroundColor: '#FEFEFE',
           }}
         />
       </div>
