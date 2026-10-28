@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Category } from '@/lib/supabase/types';
 import { SketchIllustration } from '@/components/common/SketchIllustration';
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary/upload';
 
 interface CategorySectionProps {
   categories: Category[];
@@ -38,8 +39,11 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ cat, sketchType }) => {
         {showCustomImage ? (
           <div className="relative w-full h-full flex items-center justify-center p-2.5 sm:p-4 z-10">
             <img
-              src={customImageUrl!}
+              src={optimizeCloudinaryUrl(customImageUrl!, 400)}
               alt={cat.name}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="max-w-[82%] max-h-[75%] w-auto h-auto object-contain object-center transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_6px_12px_rgba(0,0,0,0.12)] mix-blend-multiply select-none"
               onError={() => setImageError(true)}
             />

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PreloadVideoSetting } from '@/lib/supabase/types';
+import { optimizeCloudinaryVideoUrl } from '@/lib/cloudinary/upload';
 
 interface PreloaderVideoModalProps {
   setting?: PreloadVideoSetting | null;
@@ -27,7 +28,7 @@ export const PreloaderVideoModal: React.FC<PreloaderVideoModalProps> = ({
     return '';
   });
 
-  const effectiveVideoUrl = rawPropUrl || cachedUrl;
+  const effectiveVideoUrl = optimizeCloudinaryVideoUrl(rawPropUrl || cachedUrl);
   const isEnabled = setting?.is_enabled !== false;
 
   const [fadeOut, setFadeOut] = useState(false);

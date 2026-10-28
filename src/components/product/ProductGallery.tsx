@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ZoomIn, ChevronLeft, ChevronRight } from 'lucide-react';
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary/upload';
 
 interface ProductGalleryProps {
   images: string[];
@@ -46,8 +47,10 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, productN
                 }`}
               >
                 <img
-                  src={img}
+                  src={optimizeCloudinaryUrl(img, 200)}
                   alt={`${productName} thumbnail ${idx + 1}`}
+                  loading="eager"
+                  decoding="async"
                   className="w-full h-full object-cover object-center select-none"
                 />
               </button>
@@ -60,8 +63,11 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, productN
       <div className="relative flex-1 w-full aspect-[4/5] bg-[#F7F6F2] rounded-xl overflow-hidden border border-meow-border flex items-center justify-center group">
         {activeImage ? (
           <img
-            src={activeImage}
+            src={optimizeCloudinaryUrl(activeImage, 1000)}
             alt={productName}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
             className="w-full h-full object-cover object-center select-none transition-transform duration-500 ease-out group-hover:scale-105"
           />
         ) : (

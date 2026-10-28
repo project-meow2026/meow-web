@@ -46,30 +46,40 @@ export async function GET() {
       collectionsPage = JSON.parse(rawCollections);
     } catch (_) {}
 
-    // 2. Query Supabase if configured
+    // 2. Query Supabase if configured.
+    // Supabase is the live source of truth (on Vercel the disk JSON files are read-only
+    // build-time snapshots, so they must never shadow newer admin saves in Supabase).
+    // Disk only wins if it carries a strictly newer updated_at timestamp (local dev).
+    const isNewer = (remote: any, local: any) => {
+      if (!local) return true;
+      const lt = local?.updated_at ? new Date(local.updated_at).getTime() : 0;
+      const rt = remote?.updated_at ? new Date(remote.updated_at).getTime() : 0;
+      return rt >= lt;
+    };
+
     const supabase = getSupabaseServerClient();
     if (supabase) {
       const { data: rows } = await supabase
         .from('site_settings')
-        .select('key, value')
+        .select('key, value, updated_at')
         .in('key', ['contact_info', 'social_links', 'about_section', 'collections_page']);
 
-      rows?.forEach((r) => {
-        if (r.key === 'contact_info' && r.value) {
+      rows?.forEach((r: any) => {
+        if (!r.value) return;
+        const remote = { ...r.value, updated_at: r.value.updated_at || r.updated_at };
+        if (r.key === 'contact_info') {
           if (!loadedFromDisk || (r.value.whatsapp && r.value.whatsapp !== INITIAL_CONTACT_INFO.whatsapp)) {
             contactInfo = { ...contactInfo, ...r.value };
           }
         }
-        if (r.key === 'social_links' && r.value) {
-          if (!loadedFromDisk) {
-            socialLinks = { ...socialLinks, ...r.value };
-          }
+        if (r.key === 'social_links') {
+          socialLinks = { ...socialLinks, ...r.value };
         }
-        if (r.key === 'about_section' && r.value && !aboutSection) {
-          aboutSection = r.value;
+        if (r.key === 'about_section' && isNewer(remote, aboutSection)) {
+          aboutSection = remote;
         }
-        if (r.key === 'collections_page' && r.value && !collectionsPage) {
-          collectionsPage = r.value;
+        if (r.key === 'collections_page' && isNewer(remote, collectionsPage)) {
+          collectionsPage = remote;
         }
       });
     }
@@ -145,7 +155,7 @@ export async function POST(req: NextRequest) {
 
     // Handle Admin CMS About Us content update
     if (body.type === 'about' && body.about) {
-      const { about } = body;
+      const about = { ...body.about, updated_at: new Date().toISOString() };
       try {
         const fs = await import('fs/promises');
         const path = await import('path');
@@ -175,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     // Handle Admin CMS Collections Page content update
     if (body.type === 'collections' && body.collections) {
-      const { collections } = body;
+      const collections = { ...body.collections, updated_at: new Date().toISOString() };
       try {
         const fs = await import('fs/promises');
         const path = await import('path');

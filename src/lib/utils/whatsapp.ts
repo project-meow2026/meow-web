@@ -1,47 +1,25 @@
 import { Order } from '@/lib/supabase/types';
 import { formatPrice } from './formatters';
 
-export const buildWhatsAppOrderMessage = (order: Order, baseUrl?: string): string => {
-  const origin =
-    baseUrl ||
-    (typeof window !== 'undefined' && window.location?.origin
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_SITE_URL || 'https://mymeow.in');
-
-  // Collect first valid product image URL so we can place it at the top of the message for WhatsApp rich image card preview
-  let primaryPreviewImage = '';
-
+export const buildWhatsAppOrderMessage = (order: Order): string => {
   const itemsText =
     order.items && order.items.length > 0
       ? order.items
           .map((item, idx) => {
-            let imgUrl = (item.miniature_image_url || '').trim();
-            if (imgUrl && imgUrl.startsWith('/')) {
-              imgUrl = `${origin.replace(/\/$/, '')}${imgUrl}`;
-            }
-            if (imgUrl && !primaryPreviewImage) {
-              primaryPreviewImage = imgUrl;
-            }
-
-            const imageLine = imgUrl ? `\n   🖼️ *Product Image:* ${imgUrl}` : '';
-
             return (
               `👟 *${idx + 1}. ${item.product_name}*\n` +
               `   🎨 *Color:* ${item.variant_color}\n` +
               `   📏 *Size:* ${item.size}\n` +
               `   🔢 *Qty:* ${item.quantity}\n` +
-              `   💰 *Price:* ${formatPrice(item.total_price)}` +
-              imageLine
+              `   💰 *Price:* ${formatPrice(item.total_price)}`
             );
           })
           .join('\n\n')
       : 'No items';
 
   const notesText = order.notes ? `\n\n📝 *Order Notes:* ${order.notes}` : '';
-  const topPreviewBlock = primaryPreviewImage ? `${primaryPreviewImage}\n\n` : '';
 
   return (
-    topPreviewBlock +
     `🛍️ *NEW ORDER — MEOW FOOTWEAR*\n` +
     `🧾 *Order Ref:* ${order.order_ref}\n` +
     `━━━━━━━━━━━━━━━━━━━━━━\n` +
@@ -68,7 +46,7 @@ export const buildWhatsAppOrderMessage = (order: Order, baseUrl?: string): strin
 export const getWhatsAppRedirectUrl = (
   order: Order,
   businessNumber?: string,
-  baseUrl?: string
+  _baseUrl?: string
 ): string => {
   let savedWhatsapp = '';
   if (!businessNumber && typeof window !== 'undefined') {
@@ -90,7 +68,6 @@ export const getWhatsAppRedirectUrl = (
     '919876543210'
   ).replace(/\D/g, '');
 
-  const message = buildWhatsAppOrderMessage(order, baseUrl);
-  // api.whatsapp.com/send preserves UTF-8 emojis reliably without surrogate pair corruption on desktop & mobile redirects
+  const message = buildWhatsAppOrderMessage(order);
   return `https://api.whatsapp.com/send?phone=${number}&text=${encodeURIComponent(message)}`;
 };

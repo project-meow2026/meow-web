@@ -6,7 +6,12 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { dbService, INITIAL_PRELOAD_VIDEO } from '@/lib/storage/db';
 import { PreloadVideoSetting } from '@/lib/supabase/types';
 import { PreloaderVideoModal } from '@/components/home/PreloaderVideoModal';
-import { uploadMediaToCloudinary } from '@/lib/cloudinary/upload';
+import {
+  uploadMediaToCloudinary,
+  deleteMediaFromCloudinary,
+  MAX_VIDEO_SIZE_BYTES,
+  MAX_VIDEO_SIZE_MB,
+} from '@/lib/cloudinary/upload';
 
 export default function AdminPreloaderPage() {
   const [setting, setSetting] = useState<PreloadVideoSetting>(INITIAL_PRELOAD_VIDEO);
@@ -59,6 +64,17 @@ export default function AdminPreloaderPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      alert(
+        `Safety Limit Exceeded: This video is ${sizeMB} MB.\n\nMaximum allowed video size is ${MAX_VIDEO_SIZE_MB} MB to protect Cloudinary bandwidth & keep your website fast.`
+      );
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const previousVideoUrl = setting.video_url;
+
     setUploading(true);
     setUploadProgress(10);
     try {
@@ -69,6 +85,14 @@ export default function AdminPreloaderPage() {
 
       if (!res?.url) {
         throw new Error('Failed to upload video to Cloudinary');
+      }
+
+      if (
+        previousVideoUrl &&
+        previousVideoUrl !== res.url &&
+        previousVideoUrl.includes('cloudinary.com')
+      ) {
+        deleteMediaFromCloudinary(previousVideoUrl, 'video').catch(() => {});
       }
 
       const updated: PreloadVideoSetting = {
@@ -200,14 +224,19 @@ export default function AdminPreloaderPage() {
 
         {/* Section 2: Video Asset & Live Preview */}
         <div className="bg-white border border-meow-border rounded-xl p-6 sm:p-8 space-y-6 shadow-sm">
-          <div>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark flex items-center gap-2">
-              <Video className="w-4 h-4 text-meow-dark" />
-              <span>Intro Video File / URL</span>
-            </h2>
-            <p className="text-xs text-meow-muted mt-1">
-              Upload an MP4/WebM video or paste a Cloudinary/CDN video link.
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark flex items-center gap-2">
+                <Video className="w-4 h-4 text-meow-dark" />
+                <span>Intro Video File / URL</span>
+              </h2>
+              <p className="text-xs text-meow-muted mt-1">
+                Upload an MP4/WebM video or paste a Cloudinary/CDN video link.
+              </p>
+            </div>
+            <span className="inline-flex items-center px-2.5 py-1 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold">
+              Safety Limit: Max {MAX_VIDEO_SIZE_MB} MB • Auto-cleans old video
+            </span>
           </div>
 
           {/* Video URL Input */}

@@ -38,8 +38,8 @@ export const FeaturedSection: React.FC<FeaturedSectionProps> = ({ products }) =>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-          {displayProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {displayProducts.map((product, idx) => (
+            <ProductCard key={product.id} product={product} priority={idx < 4} />
           ))}
         </div>
       </div>
