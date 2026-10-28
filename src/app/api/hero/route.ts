@@ -28,7 +28,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (diskHero) {
+    // On Vercel the disk file is a read-only build-time snapshot, so always read live
+    // Supabase data there (admin saves on Vercel only persist to Supabase).
+    if (diskHero && !process.env.VERCEL) {
       return NextResponse.json(
         { hero: diskHero },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }

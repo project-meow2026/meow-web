@@ -53,8 +53,8 @@ export const NewArrivalsSection: React.FC<NewArrivalsSectionProps> = ({ products
 
         {/* Real Products Grid with Responsive Alignment */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6 items-stretch">
-          {displayProducts.slice(0, 4).map((product) => (
-            <ProductCard key={product.id || product.slug} product={product} />
+          {displayProducts.slice(0, 4).map((product, idx) => (
+            <ProductCard key={product.id || product.slug} product={product} priority={false} />
           ))}
         </div>
       </div>

@@ -11,32 +11,40 @@ import { useCart } from '@/context/CartContext';
 
 interface ProductCardProps {
   product: Product;
+  priority?: boolean;
   key?: any;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, priority = false }) => {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  // Active selected color variant (-1 means default primary product)
-  const [selectedVariantIndex, setSelectedVariantIndex] = useState(-1);
+  // Temporary hover preview for colorways (null means showing actual/original product)
+  const [previewVariantIndex, setPreviewVariantIndex] = useState<number | null>(null);
 
-  const activeVariant: ProductVariant | undefined =
-    selectedVariantIndex >= 0 && product.variants && product.variants.length > selectedVariantIndex
-      ? product.variants[selectedVariantIndex]
+  const previewVariant: ProductVariant | undefined =
+    previewVariantIndex !== null &&
+    product.variants &&
+    product.variants.length > previewVariantIndex
+      ? product.variants[previewVariantIndex]
       : undefined;
 
-  // Active display image (variant primary image or default primary image)
+  // Active display image: variant image when hovering a swatch, otherwise ALWAYS actual product
   const displayImage =
-    activeVariant?.primary_image_url ||
-    activeVariant?.miniature_image_url ||
+    previewVariant?.primary_image_url ||
+    previewVariant?.miniature_image_url ||
     product.primary_image_url;
 
-  // Active price (with variant override if applicable)
-  const currentPrice = activeVariant?.price_override ?? product.price;
+  // Active price (with variant override if applicable during preview)
+  const currentPrice = previewVariant?.price_override ?? product.price;
   const currentSalePrice = product.sale_price;
 
   const isFavorited = isInWishlist(product.id);
+
+  // Dynamic product detail URL (carries variant if previewing, otherwise actual product)
+  const productDetailUrl = previewVariant?.color_name
+    ? `/product/${product.slug}?color=${encodeURIComponent(previewVariant.color_name)}&variant=${encodeURIComponent(previewVariant.id)}`
+    : `/product/${product.slug}`;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -47,9 +55,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       productName: product.name,
       slug: product.slug,
       categoryName: product.category?.name,
-      variantId: activeVariant?.id || 'default-variant',
-      colorName: activeVariant?.color_name || 'Standard',
-      miniatureImageUrl: activeVariant?.miniature_image_url || product.primary_image_url,
+      variantId: previewVariant?.id || 'default-variant',
+      colorName: previewVariant?.color_name || 'Standard',
+      miniatureImageUrl: previewVariant?.miniature_image_url || product.primary_image_url,
       primaryImageUrl: displayImage,
       size: product.sizes?.[0] || '8',
       price: currentSalePrice ?? currentPrice,
@@ -58,16 +66,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <div className="group relative flex flex-col h-full bg-white border border-[#EBE8E2] rounded-none overflow-hidden transition-colors duration-200">
+    <div
+      onMouseLeave={() => setPreviewVariantIndex(null)}
+      className="group relative flex flex-col h-full bg-white border border-[#EBE8E2] rounded-none overflow-hidden transition-colors duration-200"
+    >
       {/* Top Image Container - Crisp Rectangular, No Curves, No Hover Zoom */}
-      <div className="relative aspect-[4/5] w-full bg-[#F7F6F2] overflow-hidden rounded-none flex-shrink-0">
-        <Link href={`/product/${product.slug}`} className="block w-full h-full">
+      <div
+        onMouseEnter={() => setPreviewVariantIndex(null)}
+        className="relative aspect-[4/5] w-full bg-[#F7F6F2] overflow-hidden rounded-none flex-shrink-0"
+      >
+        <Link href={productDetailUrl} className="block w-full h-full">
           {displayImage ? (
             <img
               src={optimizeCloudinaryUrl(displayImage, 700)}
               alt={product.name}
               className="w-full h-full object-cover object-center select-none"
-              loading="eager"
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
             />
           ) : (
@@ -126,7 +141,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
 
       {/* Product Information - Mobile Compact Adjusted Sizes with Equal Rhythm */}
-      <div className="p-2 sm:p-3.5 flex flex-col flex-1 justify-between gap-1.5 sm:gap-2.5">
+      <div
+        onMouseEnter={() => setPreviewVariantIndex(null)}
+        className="p-2 sm:p-3.5 flex flex-col flex-1 justify-between gap-1.5 sm:gap-2.5"
+      >
         <div>
           {/* Collection / Category */}
           {product.category && (
@@ -136,7 +154,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           )}
 
           {/* Product Name */}
-          <Link href={`/product/${product.slug}`}>
+          <Link href={productDetailUrl}>
             <h3 className="text-[11px] sm:text-sm font-medium text-meow-dark leading-snug line-clamp-1 group-hover:underline">
               {product.name}
             </h3>
@@ -157,10 +175,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         {/* Circular Color Swatch Dots Matching Luxury Reference Image */}
         {product.variants && product.variants.length > 0 && (
-          <div className="pt-1.5 sm:pt-2 border-t border-meow-border/50 mt-auto">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar scrollbar-none [&::-webkit-scrollbar]:hidden">
+          <div
+            onMouseLeave={() => setPreviewVariantIndex(null)}
+            className="pt-1.5 sm:pt-2 border-t border-meow-border/50 mt-auto"
+          >
+            <div
+              onMouseLeave={() => setPreviewVariantIndex(null)}
+              className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar scrollbar-none [&::-webkit-scrollbar]:hidden"
+            >
               {product.variants.map((variant, idx) => {
-                const isSelected = selectedVariantIndex === idx;
+                const isSelected = previewVariantIndex === idx;
                 
                 // Color mapping dictionary for natural luxury footwear tones
                 const colorMap: Record<string, string> = {
@@ -188,38 +212,39 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
                 const miniImg = variant.miniature_image_url || variant.primary_image_url;
 
+                const variantUrl = `/product/${product.slug}?color=${encodeURIComponent(variant.color_name)}&variant=${encodeURIComponent(variant.id)}`;
+
                 return (
-                  <button
+                  <Link
                     key={variant.id || `${variant.color_name}-${idx}`}
-                    type="button"
+                    href={variantUrl}
+                    onMouseEnter={() => setPreviewVariantIndex(idx)}
+                    onMouseLeave={() => setPreviewVariantIndex(null)}
                     onClick={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
-                      setSelectedVariantIndex((prev) => (prev === idx ? -1 : idx));
                     }}
-                    onMouseEnter={() => setSelectedVariantIndex(idx)}
-                    title={`Color: ${variant.color_name}`}
+                    title={`View ${variant.color_name} colorway`}
                     className={`relative w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden flex-shrink-0 transition-all duration-200 border bg-[#F7F6F2] ${
                       isSelected
                         ? 'ring-2 ring-meow-dark ring-offset-1 scale-105 border-meow-dark'
                         : 'border-neutral-300 hover:scale-105 opacity-90'
                     }`}
-                    aria-label={`Select color ${variant.color_name}`}
+                    aria-label={`Select and open ${variant.color_name} colorway`}
                   >
                     {miniImg ? (
                       <img
-                        src={miniImg}
+                        src={optimizeCloudinaryUrl(miniImg, 80)}
                         alt={variant.color_name}
                         className="w-full h-full object-cover object-center pointer-events-none"
                         loading="lazy"
                       />
                     ) : (
                       <span
-                        className="w-full h-full block rounded-full"
+                        className="w-full h-full block rounded-full pointer-events-none"
                         style={{ backgroundColor: matchedHex }}
                       />
                     )}
-                  </button>
+                  </Link>
                 );
               })}
             </div>

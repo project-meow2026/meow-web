@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { HeroBanner } from '@/lib/supabase/types';
+import { optimizeCloudinaryVideoUrl } from '@/lib/cloudinary/upload';
 
 interface HeroSectionProps {
   banner: HeroBanner;
@@ -12,8 +13,10 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ banner }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const GEMINI_HERO_VIDEO = 'https://res.cloudinary.com/k7t4skr1/video/upload/v1793007834/meow/hero/desktop/qlqsgtcvyihqq2bsnu0s.mp4';
-  const videoUrl = banner.desktop_video_url || banner.mobile_video_url || GEMINI_HERO_VIDEO;
+  const GEMINI_HERO_VIDEO = 'https://res.cloudinary.com/k7t4skr1/video/upload/f_auto,q_auto/v1793007834/meow/hero/desktop/qlqsgtcvyihqq2bsnu0s.mp4';
+  const videoUrl = optimizeCloudinaryVideoUrl(
+    banner.desktop_video_url || banner.mobile_video_url || GEMINI_HERO_VIDEO
+  );
   const posterUrl = banner.poster_image_url;
 
   // Ensure autoplay works smoothly across all modern browsers

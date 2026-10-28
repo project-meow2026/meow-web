@@ -7,7 +7,12 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { dbService, INITIAL_HERO_BANNER } from '@/lib/storage/db';
 import { HeroBanner } from '@/lib/supabase/types';
-import { uploadMediaToCloudinary, deleteMediaFromCloudinary } from '@/lib/cloudinary/upload';
+import {
+  uploadMediaToCloudinary,
+  deleteMediaFromCloudinary,
+  MAX_VIDEO_SIZE_BYTES,
+  MAX_VIDEO_SIZE_MB,
+} from '@/lib/cloudinary/upload';
 
 export default function AdminHeroPage() {
   const [hero, setHero] = useState<HeroBanner>(INITIAL_HERO_BANNER);
@@ -40,9 +45,22 @@ export default function AdminHeroPage() {
   const uploadVideoFile = async (file: File, type: 'desktop' | 'mobile') => {
     if (!file) return;
 
+    if (file.size > MAX_VIDEO_SIZE_BYTES) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      alert(
+        `Safety Limit Exceeded: This video is ${sizeMB} MB.\n\nMaximum allowed video size is ${MAX_VIDEO_SIZE_MB} MB to protect Cloudinary bandwidth & keep your website fast.`
+      );
+      if (type === 'desktop' && desktopFileInputRef.current) desktopFileInputRef.current.value = '';
+      if (type === 'mobile' && mobileFileInputRef.current) mobileFileInputRef.current.value = '';
+      return;
+    }
+
     if (type === 'desktop') setUploadingDesktop(true);
     else setUploadingMobile(true);
     setUploadProgress(15);
+
+    const previousVideoUrl =
+      type === 'desktop' ? hero.desktop_video_url : hero.mobile_video_url;
 
     try {
       // Direct client-side secure upload to Cloudinary CDN
@@ -56,6 +74,15 @@ export default function AdminHeroPage() {
       }
 
       const videoUrl = cRes.url;
+
+      // Auto-delete old replaced video from Cloudinary to protect storage quota
+      if (
+        previousVideoUrl &&
+        previousVideoUrl !== videoUrl &&
+        previousVideoUrl.includes('cloudinary.com')
+      ) {
+        deleteMediaFromCloudinary(previousVideoUrl, 'video').catch(() => {});
+      }
 
       const updated: HeroBanner = {
         ...hero,
@@ -308,10 +335,15 @@ export default function AdminHeroPage() {
 
         {/* 3D Exploded Footwear Video Assets Card */}
         <div className="border border-meow-border rounded-xl p-6 sm:p-8 bg-white shadow-sm space-y-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark pb-3 border-b border-meow-border flex items-center gap-2">
-            <Video className="w-4 h-4 text-meow-dark" />
-            <span>2. 3D Footwear Video Assets (Cloudinary)</span>
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-meow-border">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark flex items-center gap-2">
+              <Video className="w-4 h-4 text-meow-dark" />
+              <span>2. 3D Footwear Video Assets (Cloudinary)</span>
+            </h2>
+            <span className="inline-flex items-center px-2.5 py-1 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold">
+              Safety Limit: Max {MAX_VIDEO_SIZE_MB} MB per video • Auto-cleans old video
+            </span>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Desktop Hero Video */}

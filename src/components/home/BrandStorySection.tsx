@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, Feather, Waves, Sprout, RefreshCw } from 'lucide-react';
 import { TheMeowStandardSetting } from '@/lib/supabase/types';
 import { INITIAL_THE_MEOW_STANDARD } from '@/lib/storage/db';
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary/upload';
 
 interface BrandStorySectionProps {
   banner?: TheMeowStandardSetting | null;
@@ -51,7 +52,8 @@ export const BrandStorySection: React.FC<BrandStorySectionProps> = ({ banner = I
               src="/images/banners/exact-story-banner.png"
               alt={current.heading || 'The MEOW Standard Lifestyle'}
               className="w-[198%] max-w-none h-full object-cover object-[0%_65%] select-none pointer-events-none"
-              loading="lazy"
+              loading="eager"
+              decoding="async"
               onError={(e) => {
                 e.currentTarget.src = '/images/banners/story-banner.jpg';
                 e.currentTarget.className = 'w-full h-full object-cover object-center';
@@ -59,10 +61,11 @@ export const BrandStorySection: React.FC<BrandStorySectionProps> = ({ banner = I
             />
           ) : (
             <img
-              src={rawUrl}
+              src={optimizeCloudinaryUrl(rawUrl, 1400)}
               alt={current.heading || 'The MEOW Standard Lifestyle'}
               className="w-full h-full object-cover object-center"
-              loading="lazy"
+              loading="eager"
+              decoding="async"
             />
           )}
         </div>

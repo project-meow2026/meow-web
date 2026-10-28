@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
     if (type === 'shop') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'shop_hero_banner').single();
       return NextResponse.json(
-        { banner: diskBanners.shop_hero_banner || data?.value || INITIAL_SHOP_HERO_BANNER },
+        { banner: data?.value || diskBanners.shop_hero_banner || INITIAL_SHOP_HERO_BANNER },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
     if (type === 'mid') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'mid_page_banner').single();
       return NextResponse.json(
-        { banner: diskBanners.mid_page_banner || data?.value || INITIAL_MID_PAGE_BANNER },
+        { banner: data?.value || diskBanners.mid_page_banner || INITIAL_MID_PAGE_BANNER },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
     if (type === 'bottom') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'bottom_cta').single();
       return NextResponse.json(
-        { banner: diskBanners.bottom_cta || data?.value || INITIAL_BOTTOM_CTA },
+        { banner: data?.value || diskBanners.bottom_cta || INITIAL_BOTTOM_CTA },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
     if (type === 'standard') {
       const { data } = await supabase.from('site_settings').select('value').eq('key', 'the_meow_standard').single();
       return NextResponse.json(
-        { banner: diskBanners.the_meow_standard || data?.value || INITIAL_THE_MEOW_STANDARD },
+        { banner: data?.value || diskBanners.the_meow_standard || INITIAL_THE_MEOW_STANDARD },
         { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       );
     }
@@ -96,10 +96,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        shop: diskBanners.shop_hero_banner || map.get('shop_hero_banner') || INITIAL_SHOP_HERO_BANNER,
-        mid: diskBanners.mid_page_banner || map.get('mid_page_banner') || INITIAL_MID_PAGE_BANNER,
-        bottom: diskBanners.bottom_cta || map.get('bottom_cta') || INITIAL_BOTTOM_CTA,
-        standard: diskBanners.the_meow_standard || map.get('the_meow_standard') || INITIAL_THE_MEOW_STANDARD,
+        shop: map.get('shop_hero_banner') || diskBanners.shop_hero_banner || INITIAL_SHOP_HERO_BANNER,
+        mid: map.get('mid_page_banner') || diskBanners.mid_page_banner || INITIAL_MID_PAGE_BANNER,
+        bottom: map.get('bottom_cta') || diskBanners.bottom_cta || INITIAL_BOTTOM_CTA,
+        standard: map.get('the_meow_standard') || diskBanners.the_meow_standard || INITIAL_THE_MEOW_STANDARD,
       },
       { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
     );

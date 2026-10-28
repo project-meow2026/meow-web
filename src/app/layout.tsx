@@ -1,11 +1,27 @@
 import type { Metadata } from 'next';
+import { Cormorant_Garamond, Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { WishlistProvider } from '@/context/WishlistContext';
 import { CartDrawer } from '@/components/layout/CartDrawer';
 
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'MEOW — The Art of Dressing Well | Minimal Luxury Footwear',
+  title: 'MEOW | The Art of Dressing Well | Minimal Luxury Footwear',
   description:
     'Experience quiet confidence and timeless comfort with MEOW Footwear. Handcrafted anatomical footbeds, ultra-lightweight EVA, and minimalist aesthetics.',
   keywords: [
@@ -28,7 +44,7 @@ export const metadata: Metadata = {
     apple: '/favicon.png',
   },
   openGraph: {
-    title: 'MEOW — The Art of Dressing Well',
+    title: 'MEOW | The Art of Dressing Well',
     description: 'Quiet confidence. Timeless comfort. Handcrafted minimalist footwear.',
     url: 'https://mymeow.in',
     siteName: 'MEOW Footwear',
@@ -43,8 +59,11 @@ export default function RootLayout({
   children: any;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <head>
+        {/* Preconnect to Cloudinary CDN for instant image TCP/TLS handshake */}
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
