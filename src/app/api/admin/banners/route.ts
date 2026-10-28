@@ -15,24 +15,8 @@ export async function POST(req: NextRequest) {
     };
 
     const settingKey = keyMap[type] || type;
-    const supabase = getSupabaseServerClient();
 
-    if (!supabase) {
-      return NextResponse.json({ success: true, savedLocally: true, data });
-    }
-
-    const { error } = await supabase.from('site_settings').upsert({
-      key: settingKey,
-      value: data,
-      updated_at: new Date().toISOString(),
-    });
-
-    if (error) {
-      console.error('Supabase error saving banner setting:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // Write to disk backup in public/settings/banners.json
+    // 1. Always write to disk backup in public/settings/banners.json
     try {
       const fs = await import('fs/promises');
       const path = await import('path');
@@ -47,6 +31,22 @@ export async function POST(req: NextRequest) {
       currentBanners[settingKey] = data;
       await fs.writeFile(bannersPath, JSON.stringify(currentBanners, null, 2), 'utf-8');
     } catch (_) {}
+
+    // 2. Also upsert to Supabase site_settings if configured
+    const supabase = getSupabaseServerClient();
+    if (supabase) {
+      const { error } = await supabase.from('site_settings').upsert(
+        {
+          key: settingKey,
+          value: data,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+      if (error) {
+        console.warn('Supabase error saving banner setting:', error.message);
+      }
+    }
 
     return NextResponse.json({ success: true, key: settingKey, data });
   } catch (err: any) {

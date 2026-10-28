@@ -45,7 +45,7 @@ export const MiniatureVariantSelector: React.FC<MiniatureVariantSelectorProps> =
               type="button"
               onClick={() => onSelectVariant(variant)}
               aria-label={`Select ${variant.color_name} colorway`}
-              className={`group relative w-16 h-16 sm:w-18 sm:h-18 rounded-lg overflow-hidden border-2 transition-all duration-200 bg-[#F7F6F2] p-1 ${
+              className={`group relative w-16 h-16 sm:w-18 sm:h-18 rounded-lg overflow-hidden border-2 transition-all duration-200 bg-[#F7F6F2] ${
                 isSelected
                   ? 'border-meow-dark ring-2 ring-meow-dark/20 scale-105 shadow-md'
                   : 'border-meow-border hover:border-meow-muted opacity-80 hover:opacity-100'
@@ -56,7 +56,7 @@ export const MiniatureVariantSelector: React.FC<MiniatureVariantSelectorProps> =
                 <img
                   src={(variant.miniature_image_url || variant.primary_image_url)!}
                   alt={variant.color_name}
-                  className="w-full h-full object-contain mix-blend-multiply rounded select-none"
+                  className="w-full h-full object-cover object-center select-none"
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-[10px] text-meow-subtle uppercase">

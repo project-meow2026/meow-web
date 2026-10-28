@@ -113,20 +113,23 @@ export const INITIAL_SOCIAL_LINKS: SocialLinksSetting = {
 export const INITIAL_ABOUT_SECTION: AboutSection = {
   id: 'meow-about-main',
   tagline: 'OUR STORY',
-  heading: 'CRAFTED FOR A BOLDER YOU.',
-  story_summary: 'MEOW is more than footwear — it is a blend of craftsmanship, comfort, and contemporary style, made for everyday journeys.',
-  story_detail: 'Born from a deep appreciation for anatomical wellness and understated luxury, MEOW redefines how modern individuals experience everyday movement. Every curve of our footbeds is shaped to cradle your natural stance, while our lightweight materials absorb shock effortlessly.',
+  heading: 'CRAFTED\nFOR A\nBOLDER YOU.',
+  story_summary: 'MEOW is more than footwear — it’s a blend of craftsmanship, comfort, and contemporary style, made for everyday journeys.',
+  story_detail: '',
   banner_image_url: null,
-  craft_heading: 'EVERY STEP A STORY',
-  craft_body: 'MEOW brings together minimal design and maximum comfort. We create footwear that fits your everyday life — from relaxed casuals to refined statements — with an uncompromising focus on quality, durability, and timeless silhouette.',
+  craft_heading: 'EVERY STEP\nA STORY',
+  craft_body: 'MEOW brings together minimal design and maximum comfort. We create footwear that fits your everyday life — from relaxed casuals to refined formals — with a focus on quality, durability and timeless design.',
   craft_image_url: null,
-  mission_text: 'To craft footwear that inspires confidence everyday through anatomical support and conscious design.',
-  vision_text: 'To make every step a more comfortable world.',
+  values_image_url: null,
+  values_image_caption: 'TRADITION\nMEETS\nMODERN STYLE',
+  vision_image_url: null,
+  mission_text: 'TO CRAFT FOOTWEAR\nTHAT INSPIRES CONFIDENCE\nEVERYDAY.',
+  vision_text: 'TO MAKE EVERY STEP\nA MORE COMFORTABLE\nWORLD.',
   values: [
-    { title: 'Quality First', description: 'We believe in footwear that lasts, made with care, precision, and hand-finished attention.' },
-    { title: 'Minimal Design', description: 'Clean, versatile silhouettes that elevate everyday outfits without unnecessary noise.' },
-    { title: 'Customer Focus', description: 'Your walking comfort and long-term satisfaction drive our entire innovation journey.' },
-    { title: 'A Greener Tomorrow', description: 'Responsible material choices, recyclable EVA, and natural cork for a better future.' },
+    { title: 'QUALITY FIRST', description: 'We believe in footwear that lasts, made with care and precision.' },
+    { title: 'MINIMAL DESIGN', description: 'Clean, versatile styles for every occasion.' },
+    { title: 'CUSTOMER FOCUS', description: 'Your comfort and satisfaction drive our journey.' },
+    { title: 'A GREENER TOMORROW', description: 'Responsible choices for a better future.' },
   ],
 };
 
@@ -1105,29 +1108,82 @@ export const dbService = {
   // SITE SETTINGS & CONTACT INFO
   // --------------------------------------------------------------------------
   async getContactInfo(): Promise<ContactInfoSetting> {
+    const localCached = getLocalData<ContactInfoSetting | null>(STORAGE_KEYS.CONTACT, null);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/contact?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.contactInfo) {
+            // If server returned the hardcoded default but local cache has a custom saved number, keep custom & sync to server
+            if (
+              localCached &&
+              localCached.whatsapp &&
+              localCached.whatsapp !== INITIAL_CONTACT_INFO.whatsapp &&
+              resData.contactInfo.whatsapp === INITIAL_CONTACT_INFO.whatsapp
+            ) {
+              fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'settings', contactInfo: localCached }),
+              }).catch(() => {});
+              return localCached;
+            }
+            setLocalData(STORAGE_KEYS.CONTACT, resData.contactInfo);
+            return resData.contactInfo as ContactInfoSetting;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (localCached) return localCached;
+
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('site_settings')
         .select('value')
         .eq('key', 'contact_info')
         .single();
-      if (!error && data?.value) return data.value as ContactInfoSetting;
+      if (!error && data?.value) {
+        setLocalData(STORAGE_KEYS.CONTACT, data.value);
+        return data.value as ContactInfoSetting;
+      }
     }
-    return getLocalData<ContactInfoSetting>(STORAGE_KEYS.CONTACT, INITIAL_CONTACT_INFO);
+    return INITIAL_CONTACT_INFO;
   },
 
   async saveContactInfo(info: Partial<ContactInfoSetting>): Promise<ContactInfoSetting> {
-    const current = await this.getContactInfo();
-    const updated = { ...current, ...info };
+    const localCached = getLocalData<ContactInfoSetting>(STORAGE_KEYS.CONTACT, INITIAL_CONTACT_INFO);
+    const updated: ContactInfoSetting = {
+      ...localCached,
+      ...info,
+      phone: info.whatsapp || info.phone || localCached.phone,
+    };
     setLocalData(STORAGE_KEYS.CONTACT, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'settings', contactInfo: updated }),
+        });
+      } catch (e) {
+        console.warn('Failed to save contact info via API:', e);
+      }
+    }
 
     if (isSupabaseConfigured() && supabase) {
       try {
-        await supabase.from('site_settings').upsert({
-          key: 'contact_info',
-          value: updated,
-          updated_at: new Date().toISOString(),
-        });
+        await supabase.from('site_settings').upsert(
+          {
+            key: 'contact_info',
+            value: updated,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' }
+        );
       } catch (e) {
         console.warn('Failed to update contact info in Supabase:', e);
       }
@@ -1136,29 +1192,76 @@ export const dbService = {
   },
 
   async getSocialLinks(): Promise<SocialLinksSetting> {
+    const localCached = getLocalData<SocialLinksSetting | null>(STORAGE_KEYS.SOCIAL, null);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/contact?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.socialLinks) {
+            if (
+              localCached &&
+              JSON.stringify(localCached) !== JSON.stringify(INITIAL_SOCIAL_LINKS) &&
+              JSON.stringify(resData.socialLinks) === JSON.stringify(INITIAL_SOCIAL_LINKS)
+            ) {
+              fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'settings', socialLinks: localCached }),
+              }).catch(() => {});
+              return localCached;
+            }
+            setLocalData(STORAGE_KEYS.SOCIAL, resData.socialLinks);
+            return resData.socialLinks as SocialLinksSetting;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (localCached) return localCached;
+
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('site_settings')
         .select('value')
         .eq('key', 'social_links')
         .single();
-      if (!error && data?.value) return data.value as SocialLinksSetting;
+      if (!error && data?.value) {
+        setLocalData(STORAGE_KEYS.SOCIAL, data.value);
+        return data.value as SocialLinksSetting;
+      }
     }
-    return getLocalData<SocialLinksSetting>(STORAGE_KEYS.SOCIAL, INITIAL_SOCIAL_LINKS);
+    return INITIAL_SOCIAL_LINKS;
   },
 
   async saveSocialLinks(links: Partial<SocialLinksSetting>): Promise<SocialLinksSetting> {
-    const current = await this.getSocialLinks();
-    const updated = { ...current, ...links };
+    const localCached = getLocalData<SocialLinksSetting>(STORAGE_KEYS.SOCIAL, INITIAL_SOCIAL_LINKS);
+    const updated: SocialLinksSetting = { ...localCached, ...links };
     setLocalData(STORAGE_KEYS.SOCIAL, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'settings', socialLinks: updated }),
+        });
+      } catch (e) {
+        console.warn('Failed to save social links via API:', e);
+      }
+    }
 
     if (isSupabaseConfigured() && supabase) {
       try {
-        await supabase.from('site_settings').upsert({
-          key: 'social_links',
-          value: updated,
-          updated_at: new Date().toISOString(),
-        });
+        await supabase.from('site_settings').upsert(
+          {
+            key: 'social_links',
+            value: updated,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' }
+        );
       } catch (e) {
         console.warn('Failed to update social links in Supabase:', e);
       }
@@ -1170,21 +1273,55 @@ export const dbService = {
   // ABOUT SECTION
   // --------------------------------------------------------------------------
   async getAboutSection(): Promise<AboutSection> {
+    const localCached = getLocalData<AboutSection | null>(STORAGE_KEYS.ABOUT, null);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/contact?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.aboutSection) {
+            const merged = { ...INITIAL_ABOUT_SECTION, ...resData.aboutSection };
+            setLocalData(STORAGE_KEYS.ABOUT, merged);
+            return merged;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (localCached) return { ...INITIAL_ABOUT_SECTION, ...localCached };
+
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('about_sections')
         .select('*')
         .limit(1)
         .single();
-      if (!error && data) return data as AboutSection;
+      if (!error && data) {
+        const merged = { ...INITIAL_ABOUT_SECTION, ...(data as AboutSection) };
+        setLocalData(STORAGE_KEYS.ABOUT, merged);
+        return merged;
+      }
     }
-    return getLocalData<AboutSection>(STORAGE_KEYS.ABOUT, INITIAL_ABOUT_SECTION);
+    return INITIAL_ABOUT_SECTION;
   },
 
   async saveAboutSection(about: Partial<AboutSection>): Promise<AboutSection> {
-    const current = await this.getAboutSection();
+    const current = getLocalData<AboutSection>(STORAGE_KEYS.ABOUT, INITIAL_ABOUT_SECTION);
     const updated = { ...current, ...about };
     setLocalData(STORAGE_KEYS.ABOUT, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'about', about: updated }),
+        });
+      } catch (e) {
+        console.warn('Failed to save about section via API:', e);
+      }
+    }
 
     if (isSupabaseConfigured() && supabase) {
       try {
@@ -1214,6 +1351,18 @@ export const dbService = {
   },
 
   async getOrderByRef(orderRef: string): Promise<Order | null> {
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch(`/api/orders?ref=${encodeURIComponent(orderRef)}&t=${Date.now()}`, {
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.order) return resData.order as Order;
+        }
+      } catch (_) {}
+    }
+
     if (isSupabaseConfigured() && supabase) {
       const { data, error } = await supabase
         .from('orders')
@@ -1226,7 +1375,7 @@ export const dbService = {
       if (!error && data) return data as unknown as Order;
     }
     const orders = getLocalData<Order[]>(STORAGE_KEYS.ORDERS, []);
-    return orders.find((o) => o.order_ref === orderRef) || null;
+    return orders.find((o) => o.order_ref.toLowerCase() === orderRef.toLowerCase()) || null;
   },
 
   async createOrder(orderData: Omit<Order, 'id' | 'created_at'>): Promise<Order> {

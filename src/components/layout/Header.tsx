@@ -114,12 +114,12 @@ export const Header: React.FC = () => {
                 )}
               </Link>
 
-              {/* Admin Portal Shortcut */}
+              {/* Customer Profile Shortcut */}
               <Link
-                href="/admin"
+                href="/profile"
                 className="p-1.5 sm:p-2 text-meow-dark hover:opacity-70 transition-opacity flex items-center justify-center"
-                title="Admin Dashboard CMS"
-                aria-label="Admin Dashboard"
+                title="Customer Profile & Orders"
+                aria-label="Customer Profile"
               >
                 <User className="w-4 h-4 sm:w-5 sm:h-5 stroke-[1.5]" />
               </Link>

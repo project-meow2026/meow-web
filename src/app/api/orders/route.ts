@@ -5,6 +5,41 @@ import { buildWhatsAppOrderMessage, getWhatsAppRedirectUrl } from '@/lib/utils/w
 
 export const dynamic = 'force-dynamic';
 
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const ref = searchParams.get('ref');
+    const phone = searchParams.get('phone');
+
+    const orders = await dbService.getOrders();
+
+    if (ref) {
+      const found = orders.find(
+        (o) => o.order_ref.toLowerCase() === ref.trim().toLowerCase()
+      );
+      return NextResponse.json({ order: found || null });
+    }
+
+    if (phone) {
+      const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+      const matched = orders.filter((o) => {
+        const oPhone = (o.customer_phone || '').replace(/\D/g, '').slice(-10);
+        const oWa = (o.customer_whatsapp || '').replace(/\D/g, '').slice(-10);
+        return (cleanPhone && (oPhone === cleanPhone || oWa === cleanPhone));
+      });
+      return NextResponse.json({ orders: matched });
+    }
+
+    return NextResponse.json({ orders });
+  } catch (error: any) {
+    console.error('Order fetch error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch orders' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -82,8 +117,10 @@ export async function POST(req: NextRequest) {
       items: orderItems,
     });
 
-    // Generate WhatsApp redirect URL
-    const whatsappUrl = getWhatsAppRedirectUrl(createdOrder);
+    // Generate WhatsApp redirect URL using dynamic admin contact settings
+    const contactInfo = await dbService.getContactInfo().catch(() => null);
+    const origin = new URL(req.url).origin;
+    const whatsappUrl = getWhatsAppRedirectUrl(createdOrder, contactInfo?.whatsapp, origin);
 
     return NextResponse.json({
       success: true,

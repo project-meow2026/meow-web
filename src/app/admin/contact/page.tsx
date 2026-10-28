@@ -28,12 +28,18 @@ export default function AdminContactPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await Promise.all([
-        dbService.saveContactInfo(info),
+      const updatedInfo = {
+        ...info,
+        phone: info.whatsapp,
+      };
+      const [savedInfo, savedSocial] = await Promise.all([
+        dbService.saveContactInfo(updatedInfo),
         dbService.saveSocialLinks(social),
       ]);
-      setToastMsg('Contact coordinates & social media links updated.');
-      setTimeout(() => setToastMsg(''), 3000);
+      setInfo(savedInfo);
+      setSocial(savedSocial);
+      setToastMsg('Contact coordinates & social media links saved successfully!');
+      setTimeout(() => setToastMsg(''), 4000);
     } catch (err: any) {
       alert(`Save error: ${err.message}`);
     } finally {
@@ -74,7 +80,7 @@ export default function AdminContactPage() {
                   type="text"
                   required
                   value={info.whatsapp}
-                  onChange={(e) => setInfo({ ...info, whatsapp: e.target.value })}
+                  onChange={(e) => setInfo({ ...info, whatsapp: e.target.value, phone: e.target.value })}
                   placeholder="e.g. 919876543210"
                   className="w-full text-xs pl-9 pr-3 py-2.5 rounded border border-meow-border font-mono"
                 />
@@ -84,22 +90,6 @@ export default function AdminContactPage() {
               </span>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-meow-dark block mb-1">
-                Customer Support Phone *
-              </label>
-              <input
-                type="text"
-                required
-                value={info.phone}
-                onChange={(e) => setInfo({ ...info, phone: e.target.value })}
-                placeholder="+91 98765 43210"
-                className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="text-xs font-semibold text-meow-dark block mb-1">
                 Support Email Address *
@@ -113,7 +103,9 @@ export default function AdminContactPage() {
                 className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border font-mono"
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="text-xs font-semibold text-meow-dark block mb-1">
                 Operating Working Hours
