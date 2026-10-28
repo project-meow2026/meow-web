@@ -10,6 +10,7 @@ export async function GET() {
     let contactInfo = { ...INITIAL_CONTACT_INFO };
     let socialLinks = { ...INITIAL_SOCIAL_LINKS };
     let aboutSection = null;
+    let collectionsPage = null;
     let loadedFromDisk = false;
 
     // 1. Read persistent disk backup first (always reflects latest admin save)
@@ -37,13 +38,21 @@ export async function GET() {
       aboutSection = JSON.parse(rawAbout);
     } catch (_) {}
 
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const collectionsPath = path.join(process.cwd(), 'public', 'settings', 'collections.json');
+      const rawCollections = await fs.readFile(collectionsPath, 'utf-8');
+      collectionsPage = JSON.parse(rawCollections);
+    } catch (_) {}
+
     // 2. Query Supabase if configured
     const supabase = getSupabaseServerClient();
     if (supabase) {
       const { data: rows } = await supabase
         .from('site_settings')
         .select('key, value')
-        .in('key', ['contact_info', 'social_links', 'about_section']);
+        .in('key', ['contact_info', 'social_links', 'about_section', 'collections_page']);
 
       rows?.forEach((r) => {
         if (r.key === 'contact_info' && r.value) {
@@ -59,11 +68,14 @@ export async function GET() {
         if (r.key === 'about_section' && r.value && !aboutSection) {
           aboutSection = r.value;
         }
+        if (r.key === 'collections_page' && r.value && !collectionsPage) {
+          collectionsPage = r.value;
+        }
       });
     }
 
     return NextResponse.json(
-      { contactInfo, socialLinks, aboutSection },
+      { contactInfo, socialLinks, aboutSection, collectionsPage },
       { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
     );
   } catch (err: any) {
@@ -159,6 +171,35 @@ export async function POST(req: NextRequest) {
       }
 
       return NextResponse.json({ success: true, about });
+    }
+
+    // Handle Admin CMS Collections Page content update
+    if (body.type === 'collections' && body.collections) {
+      const { collections } = body;
+      try {
+        const fs = await import('fs/promises');
+        const path = await import('path');
+        const settingsDir = path.join(process.cwd(), 'public', 'settings');
+        await fs.mkdir(settingsDir, { recursive: true });
+        await fs.writeFile(
+          path.join(settingsDir, 'collections.json'),
+          JSON.stringify(collections, null, 2),
+          'utf-8'
+        );
+      } catch (_) {}
+
+      const supabase = getSupabaseServerClient();
+      if (supabase) {
+        await supabase
+          .from('site_settings')
+          .upsert(
+            { key: 'collections_page', value: collections, updated_at: new Date().toISOString() },
+            { onConflict: 'key' }
+          )
+          .then(() => {}, () => {});
+      }
+
+      return NextResponse.json({ success: true, collections });
     }
 
     const { fullName, email, phone, subject, message } = body;

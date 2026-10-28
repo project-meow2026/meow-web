@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Filter, SlidersHorizontal, Search, RefreshCw, X, ChevronDown, Check } from 'lucide-react';
+import { Filter, SlidersHorizontal, Search, RefreshCw, X, ChevronDown, Check, ArrowRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { FilterSidebar, FilterState } from '@/components/shop/FilterSidebar';
 import { MobileFilterModal } from '@/components/shop/MobileFilterModal';
 import { dbService, INITIAL_SHOP_HERO_BANNER } from '@/lib/storage/db';
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary/upload';
+import { formatPrice } from '@/lib/utils/formatters';
 import { Product, Category, ShopHeroBannerSetting } from '@/lib/supabase/types';
 
 const SORT_OPTIONS = [
@@ -103,10 +106,12 @@ function ShopContent() {
   const [loading, setLoading] = useState(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParam || '');
   const [sortBy, setSortBy] = useState(sortParam || 'newest');
 
   const sortDropdownRef = useRef<HTMLDivElement | null>(null);
+  const searchBoxRef = useRef<HTMLDivElement | null>(null);
 
   const initialFilters: FilterState = {
     categories: categoryParam ? [categoryParam] : [],
@@ -116,11 +121,14 @@ function ShopContent() {
 
   const [filters, setFilters] = useState<FilterState>(initialFilters);
 
-  // Close sort dropdown when clicking outside
+  // Close sort & search dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target as Node)) {
         setSortDropdownOpen(false);
+      }
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+        setSearchDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -235,8 +243,11 @@ function ShopContent() {
             {shopHero.background_image_url ? (
               <>
                 <img
-                  src={shopHero.background_image_url}
+                  src={optimizeCloudinaryUrl(shopHero.background_image_url, 1800)}
                   alt={shopHero.heading || 'MEOW Footwear'}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                   className="absolute inset-0 w-full h-full object-cover object-center"
                 />
                 <div className="absolute inset-0 bg-black/40" />
@@ -317,23 +328,97 @@ function ShopContent() {
             <div className="lg:col-span-9 space-y-6">
               {/* Controls Bar: Search, Mobile Filter Toggle, Sort Dropdown */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-4 border-b border-meow-border">
-                {/* Search Bar with Spelling and Name Fuzzy Filtering */}
-                <div className="relative flex-1 max-w-md">
+                {/* Search Bar with Spelling, Name Fuzzy Filtering & Live Product Dropdown */}
+                <div ref={searchBoxRef} className="relative flex-1 max-w-md z-30">
                   <Search className="w-4 h-4 text-meow-subtle absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchDropdownOpen(true)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSearchDropdownOpen(true);
+                    }}
                     placeholder="Search styles, categories or names..."
                     className="w-full text-xs pl-9 pr-8 py-2.5 rounded border border-meow-border bg-meow-surface outline-none focus:border-meow-dark transition-colors placeholder:text-meow-subtle"
                   />
                   {searchQuery && (
                     <button
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSearchDropdownOpen(false);
+                      }}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-meow-subtle hover:text-meow-dark"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
+                  )}
+
+                  {/* Live Matching Products Dropdown */}
+                  {searchDropdownOpen && searchQuery.trim().length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-meow-border rounded-lg shadow-xl max-h-72 overflow-y-auto p-2 z-40">
+                      {filteredProducts.length > 0 ? (
+                        <div className="space-y-1">
+                          <span className="text-[10px] uppercase tracking-wider text-meow-subtle font-semibold px-2 py-1 block">
+                            Matching Products ({filteredProducts.length})
+                          </span>
+                          {filteredProducts.slice(0, 6).map((p) => {
+                            const thumb = optimizeCloudinaryUrl(
+                              p.primary_image_url ||
+                                p.images?.[0]?.image_url ||
+                                p.variants?.[0]?.miniature_image_url ||
+                                '',
+                              160
+                            );
+                            const price = getProductPrice(p);
+                            return (
+                              <Link
+                                key={p.id || p.slug}
+                                href={`/product/${p.slug}`}
+                                onClick={() => setSearchDropdownOpen(false)}
+                                className="flex items-center justify-between gap-2.5 p-2 rounded-md hover:bg-[#FAF9F6] transition-colors group"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-10 h-10 rounded overflow-hidden bg-[#F5F2EC] border border-meow-border shrink-0 flex items-center justify-center">
+                                    {thumb ? (
+                                      <img
+                                        src={thumb}
+                                        alt={p.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <span className="text-[9px] font-bold text-meow-subtle">
+                                        MEOW
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-meow-dark truncate group-hover:underline">
+                                      {p.name}
+                                    </p>
+                                    {p.category?.name && (
+                                      <p className="text-[10px] text-meow-subtle truncate">
+                                        {p.category.name}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span className="text-xs font-semibold text-meow-dark">
+                                    {formatPrice(price)}
+                                  </span>
+                                  <ArrowRight className="w-3.5 h-3.5 text-meow-subtle group-hover:translate-x-0.5 transition-transform" />
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="py-3 text-center text-xs text-meow-muted">
+                          No matching products found.
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 

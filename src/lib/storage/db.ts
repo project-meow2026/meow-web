@@ -16,6 +16,7 @@ import {
   BottomCtaSetting,
   TheMeowStandardSetting,
   ShopHeroBannerSetting,
+  CollectionsPageSetting,
 } from '@/lib/supabase/types';
 
 // Initial default categories for MEOW as required by Master Prompt Section 4
@@ -116,13 +117,13 @@ export const INITIAL_ABOUT_SECTION: AboutSection = {
   heading: 'CRAFTED\nFOR A\nBOLDER YOU.',
   story_summary: 'MEOW is more than footwear — it’s a blend of craftsmanship, comfort, and contemporary style, made for everyday journeys.',
   story_detail: '',
-  banner_image_url: null,
+  banner_image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793172254/meow/about/upkowffuoekvp2jfg7ub.png',
   craft_heading: 'EVERY STEP\nA STORY',
   craft_body: 'MEOW brings together minimal design and maximum comfort. We create footwear that fits your everyday life — from relaxed casuals to refined formals — with a focus on quality, durability and timeless design.',
-  craft_image_url: null,
-  values_image_url: null,
+  craft_image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793172405/meow/about/vsouq6y1p80dfuwfid44.png',
+  values_image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793172589/meow/about/w5rw22bl1jjiwvby1o6o.png',
   values_image_caption: 'TRADITION\nMEETS\nMODERN STYLE',
-  vision_image_url: null,
+  vision_image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793172601/meow/about/njojatq9l2xj9ezwygas.png',
   mission_text: 'TO CRAFT FOOTWEAR\nTHAT INSPIRES CONFIDENCE\nEVERYDAY.',
   vision_text: 'TO MAKE EVERY STEP\nA MORE COMFORTABLE\nWORLD.',
   values: [
@@ -152,10 +153,10 @@ export const INITIAL_MID_PAGE_BANNER: MidPageBannerSetting = {
 export const INITIAL_BOTTOM_CTA: BottomCtaSetting = {
   is_enabled: true,
   background_image_url: '/images/banners/bottom-cta-glass-bg.png',
-  badge: 'MEOW JOURNAL',
-  heading: 'Style Stories,\nNew Arrivals & More',
-  subtitle: 'Be the first to know about new releases, styling ideas and everything MEOW.',
-  button_text: '→',
+  badge: 'THE MEOW ARCHIVE',
+  heading: 'Timeless Craft,\nModern Comfort.',
+  subtitle: 'Thoughtfully engineered silhouettes blending natural anatomical support, featherlight soles, and understated luxury for every step of your journey.',
+  button_text: 'EXPLORE COLLECTIONS',
 };
 
 export const INITIAL_THE_MEOW_STANDARD: TheMeowStandardSetting = {
@@ -172,10 +173,80 @@ export const INITIAL_SHOP_HERO_BANNER: ShopHeroBannerSetting = {
   heading: 'ALL PRODUCTS',
   subtitle: 'Crafted for everyday comfort. Engineered anatomical support.',
   accent_tag: 'STEP INTO STYLE',
-  background_image_url: null,
+  background_image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793106687/meow/banners/josb1kjmfnd5ponlhfik.png',
   video_url: null,
   overlay_opacity: 30,
   text_color: 'dark',
+};
+
+export const INITIAL_COLLECTIONS_PAGE: CollectionsPageSetting = {
+  hero_badge: 'COLLECTIONS',
+  hero_heading: 'The Six\nCollections',
+  hero_subtitle:
+    'Engineered comfort categories tailored for women and kids, built around natural anatomy and modern-minimal styling.',
+  hero_accent: 'DISCOVER YOUR EVERYDAY PAIR',
+  hero_image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793179937/meow/collections/ckc4jth7nnk3kc3psnhs.png',
+  cards: [
+    {
+      id: 'c1-eva-women',
+      number: '01',
+      title: 'EVA for\nWomen',
+      slug: 'eva-for-women',
+      description:
+        'Featherlight, water-resistant everyday comfort crafted with ultra-cushioned high-rebound EVA footmolds.',
+      image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793179068/meow/collections/c6bvsmdjdvnbvcftwgur.png',
+    },
+    {
+      id: 'c2-cork-women',
+      number: '02',
+      title: 'Cork Inn\nfor Women',
+      slug: 'cork-inn-for-women',
+      description:
+        'Anatomically shaped natural cork footbeds paired with premium straps for all-day posture support.',
+      image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793179083/meow/collections/jpxkpibcvtattz9vqhay.png',
+    },
+    {
+      id: 'c3-dd-women',
+      number: '03',
+      title: 'Double Density\nfor Women',
+      slug: 'double-density-for-women',
+      description:
+        'Engineered dual-layer comfort combining high-density shock absorption with a pillowy soft top layer.',
+      image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793179216/meow/collections/usxpcjwjwyw3zcmfde9f.png',
+    },
+    {
+      id: 'c4-eva-kids',
+      number: '04',
+      title: 'EVA for Kids',
+      slug: 'eva-for-kids',
+      description:
+        'Super-light, washable and flexible slip-ons designed to keep little feet active and happy.',
+      image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793179385/meow/collections/bvkgt6mzykokz9s4gjo3.png',
+    },
+    {
+      id: 'c5-cork-kids',
+      number: '05',
+      title: 'Cork Inn\nfor Kids',
+      slug: 'cork-inn-kids',
+      description:
+        'Natural cork footbeds with breathable straps for growing feet. Comfort and support in every step.',
+      image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793179436/meow/collections/hdhtanwfam3itogbpriu.png',
+    },
+    {
+      id: 'c6-magic-kids',
+      number: '06',
+      title: 'Magic Craft\nfor Kids',
+      slug: 'magic-craft-for-kids',
+      description:
+        'Playful textures, fun designs and all-day comfort to make every adventure more enjoyable.',
+      image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793179482/meow/collections/cp3u45oztmbpg6guiavt.png',
+    },
+  ],
+  philosophy_badge: 'OUR PHILOSOPHY',
+  philosophy_heading: 'MADE FOR\nEVERY STEP.',
+  philosophy_body:
+    'Thoughtful materials, refined details and all-day comfort — designed to move with you.',
+  philosophy_image_url: 'https://res.cloudinary.com/k7t4skr1/image/upload/f_auto,q_auto/v1793180976/meow/collections/of5rzfiqwxaafmrln6xq.png',
 };
 
 // Storage keys for local persistence (v2 clean keys)
@@ -188,6 +259,7 @@ const STORAGE_KEYS = {
   BOTTOM_CTA: 'meow_db_bottom_cta_v2',
   THE_MEOW_STANDARD: 'meow_db_the_meow_standard_v2',
   SHOP_HERO_BANNER: 'meow_db_shop_hero_banner_v2',
+  COLLECTIONS_PAGE: 'meow_db_collections_page_v2',
   CONTACT: 'meow_db_contact_v2',
   SOCIAL: 'meow_db_social_v2',
   ABOUT: 'meow_db_about_v2',
@@ -1272,6 +1344,14 @@ export const dbService = {
   // --------------------------------------------------------------------------
   // ABOUT SECTION
   // --------------------------------------------------------------------------
+  getAboutSectionSync(): AboutSection {
+    const localCached = getLocalData<AboutSection | null>(STORAGE_KEYS.ABOUT, null);
+    if (localCached) {
+      return { ...INITIAL_ABOUT_SECTION, ...localCached };
+    }
+    return INITIAL_ABOUT_SECTION;
+  },
+
   async getAboutSection(): Promise<AboutSection> {
     const localCached = getLocalData<AboutSection | null>(STORAGE_KEYS.ABOUT, null);
 
@@ -1328,6 +1408,140 @@ export const dbService = {
         await supabase.from('about_sections').upsert(updated);
       } catch (e) {
         console.warn('Failed to update about section in Supabase:', e);
+      }
+    }
+    return updated;
+  },
+
+  // --------------------------------------------------------------------------
+  // COLLECTIONS PAGE CMS
+  // --------------------------------------------------------------------------
+  getCollectionsPageSync(): CollectionsPageSetting {
+    const localCached = getLocalData<CollectionsPageSetting | null>(
+      STORAGE_KEYS.COLLECTIONS_PAGE,
+      null
+    );
+    if (localCached) {
+      return {
+        ...INITIAL_COLLECTIONS_PAGE,
+        ...localCached,
+        cards:
+          localCached.cards && localCached.cards.length > 0
+            ? localCached.cards
+            : INITIAL_COLLECTIONS_PAGE.cards,
+      };
+    }
+    return INITIAL_COLLECTIONS_PAGE;
+  },
+
+  async getCollectionsPage(): Promise<CollectionsPageSetting> {
+    const localCached = getLocalData<CollectionsPageSetting | null>(
+      STORAGE_KEYS.COLLECTIONS_PAGE,
+      null
+    );
+
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/contact?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.collectionsPage) {
+            const merged: CollectionsPageSetting = {
+              ...INITIAL_COLLECTIONS_PAGE,
+              ...resData.collectionsPage,
+              cards:
+                resData.collectionsPage.cards && resData.collectionsPage.cards.length > 0
+                  ? resData.collectionsPage.cards
+                  : INITIAL_COLLECTIONS_PAGE.cards,
+            };
+            setLocalData(STORAGE_KEYS.COLLECTIONS_PAGE, merged);
+            return merged;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (localCached) {
+      return {
+        ...INITIAL_COLLECTIONS_PAGE,
+        ...localCached,
+        cards:
+          localCached.cards && localCached.cards.length > 0
+            ? localCached.cards
+            : INITIAL_COLLECTIONS_PAGE.cards,
+      };
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'collections_page')
+          .single();
+        if (!error && data?.value) {
+          const merged: CollectionsPageSetting = {
+            ...INITIAL_COLLECTIONS_PAGE,
+            ...(data.value as CollectionsPageSetting),
+            cards:
+              (data.value as CollectionsPageSetting).cards &&
+              (data.value as CollectionsPageSetting).cards.length > 0
+                ? (data.value as CollectionsPageSetting).cards
+                : INITIAL_COLLECTIONS_PAGE.cards,
+          };
+          setLocalData(STORAGE_KEYS.COLLECTIONS_PAGE, merged);
+          return merged;
+        }
+      } catch (_) {}
+    }
+
+    return INITIAL_COLLECTIONS_PAGE;
+  },
+
+  async saveCollectionsPage(
+    setting: Partial<CollectionsPageSetting>
+  ): Promise<CollectionsPageSetting> {
+    const current = getLocalData<CollectionsPageSetting>(
+      STORAGE_KEYS.COLLECTIONS_PAGE,
+      INITIAL_COLLECTIONS_PAGE
+    );
+    const updated: CollectionsPageSetting = {
+      ...INITIAL_COLLECTIONS_PAGE,
+      ...current,
+      ...setting,
+      cards:
+        setting.cards && setting.cards.length > 0
+          ? setting.cards
+          : current.cards && current.cards.length > 0
+          ? current.cards
+          : INITIAL_COLLECTIONS_PAGE.cards,
+    };
+    setLocalData(STORAGE_KEYS.COLLECTIONS_PAGE, updated);
+
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'collections', collections: updated }),
+        });
+      } catch (e) {
+        console.warn('Failed to save collections page via API:', e);
+      }
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('site_settings').upsert(
+          {
+            key: 'collections_page',
+            value: updated,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' }
+        );
+      } catch (e) {
+        console.warn('Failed to update collections page in Supabase:', e);
       }
     }
     return updated;

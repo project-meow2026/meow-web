@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   FolderTree,
+  LayoutGrid,
   Package,
   Sparkles,
   Layers,
@@ -34,6 +35,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ adminEmail, onSignOu
   const navItems = [
     { label: 'Overview', href: '/admin', icon: LayoutDashboard },
     { label: 'Categories (6)', href: '/admin/categories', icon: FolderTree },
+    { label: 'Collections Page', href: '/admin/collections', icon: LayoutGrid },
     { label: 'Products', href: '/admin/products', icon: Package },
     { label: 'Hero Banner & 3D Video', href: '/admin/hero', icon: Sparkles },
     { label: 'Banners (Shop & Home)', href: '/admin/banners', icon: Layers },

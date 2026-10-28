@@ -6,7 +6,8 @@ export type CloudinaryFolder =
   | 'meow/hero/mobile'
   | 'meow/preloader'
   | 'meow/banners'
-  | 'meow/about';
+  | 'meow/about'
+  | 'meow/collections';
 
 export interface CloudinaryUploadResult {
   url: string;
@@ -15,6 +16,22 @@ export interface CloudinaryUploadResult {
   resourceType: 'image' | 'video';
   bytes: number;
 }
+
+/**
+ * Transforms any Cloudinary image URL to serve ultra-fast WebP/AVIF (`f_auto,q_auto`)
+ * from Cloudinary CDN edge cache, reducing multi-MB PNGs to ~50KB-120KB.
+ */
+export const optimizeCloudinaryUrl = (url?: string | null, width?: number): string => {
+  if (!url) return '';
+  if (!url.includes('res.cloudinary.com') || !url.includes('/image/upload/')) {
+    return url;
+  }
+  const transform = width ? `f_auto,q_auto,w_${width},c_limit` : 'f_auto,q_auto';
+  if (url.includes('/image/upload/f_auto')) {
+    return url;
+  }
+  return url.replace('/image/upload/', `/image/upload/${transform}/`);
+};
 
 export const uploadMediaToCloudinary = async (
   file: File,

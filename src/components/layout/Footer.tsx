@@ -3,49 +3,38 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MessageCircle, ArrowRight, Check, Instagram, Facebook, Twitter, ChevronDown } from 'lucide-react';
-import { dbService, INITIAL_CONTACT_INFO, INITIAL_SOCIAL_LINKS } from '@/lib/storage/db';
-import { ContactInfoSetting, SocialLinksSetting } from '@/lib/supabase/types';
+import { Instagram, Facebook, Twitter, ChevronDown } from 'lucide-react';
+import { dbService, INITIAL_SOCIAL_LINKS } from '@/lib/storage/db';
+import { SocialLinksSetting } from '@/lib/supabase/types';
 
 export const Footer: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
   const [collectionsOpen, setCollectionsOpen] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(false);
-  const [contactInfo, setContactInfo] = useState<ContactInfoSetting>(INITIAL_CONTACT_INFO);
   const [socialLinks, setSocialLinks] = useState<SocialLinksSetting>(INITIAL_SOCIAL_LINKS);
 
   useEffect(() => {
-    Promise.all([dbService.getContactInfo(), dbService.getSocialLinks()])
-      .then(([info, social]) => {
-        if (info) setContactInfo(info);
+    dbService
+      .getSocialLinks()
+      .then((social) => {
         if (social) setSocialLinks(social);
       })
       .catch(() => {});
   }, []);
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setEmail('');
-    }
-  };
 
   const collections = [
     { title: 'Cork for Women', href: '/shop?category=cork-inn-for-women' },
     { title: 'EVA for Women', href: '/shop?category=eva-for-women' },
     { title: 'Double Density for Women', href: '/shop?category=double-density-for-women' },
     { title: 'EVA for Kids', href: '/shop?category=eva-for-kids' },
-    { title: 'Cork for Kids', href: '/shop?category=cork-for-kids' },
-    { title: 'Mega Kraft for Kids', href: '/shop?category=mega-kraft-kids' },
+    { title: 'Cork for Kids', href: '/shop?category=cork-inn-kids' },
+    { title: 'Magic Craft for Kids', href: '/shop?category=magic-craft-for-kids' },
   ];
 
   const discoverLinks = [
     { title: 'About MEOW', href: '/about' },
     { title: 'The Story', href: '/about#story' },
-    { title: 'Materials', href: '/about#materials' },
-    { title: 'Sustainability', href: '/about#sustainability' },
+    { title: 'Collections', href: '/collections' },
+    { title: 'All Products', href: '/shop' },
     { title: 'Contact Us', href: '/contact' },
     { title: 'Store Admin CMS', href: '/admin' },
   ];
@@ -66,21 +55,8 @@ export const Footer: React.FC = () => {
               />
             </Link>
             <p className="text-xs sm:text-sm text-neutral-500 max-w-sm leading-relaxed font-sans">
-              Quiet confidence. Timeless comfort. MEOW crafts minimal luxury footwear blending anatomical support with conscious, everyday design.
+              Footwear crafted for everyday journeys. Comfort, quality and timeless design.
             </p>
-
-            {/* Concierge Pill matching reference screenshot */}
-            <div className="pt-1">
-              <a
-                href={`https://wa.me/${(contactInfo.whatsapp || '919876543210').replace(/\D/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E6F4EA] text-[#137333] hover:bg-[#D4EDDA] text-xs font-semibold tracking-wide transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5 fill-[#137333]/20" />
-                <span>Chat with MEOW Concierge</span>
-              </a>
-            </div>
           </div>
 
           {/* Col 2: Collections - Mobile Accordion Dropdown with Arrow */}
@@ -100,10 +76,17 @@ export const Footer: React.FC = () => {
                 }`}
               />
             </button>
-            <ul className={`space-y-2.5 text-xs text-neutral-500 font-sans ${collectionsOpen ? 'block pt-1 pb-3' : 'hidden md:block'}`}>
+            <ul
+              className={`space-y-2.5 text-xs text-neutral-500 font-sans ${
+                collectionsOpen ? 'block pt-1 pb-3' : 'hidden md:block'
+              }`}
+            >
               {collections.map((item) => (
                 <li key={item.title}>
-                  <Link href={item.href} className="hover:text-neutral-900 transition-colors block py-0.5 md:py-0">
+                  <Link
+                    href={item.href}
+                    className="hover:text-neutral-900 transition-colors block py-0.5 md:py-0"
+                  >
                     {item.title}
                   </Link>
                 </li>
@@ -128,10 +111,17 @@ export const Footer: React.FC = () => {
                 }`}
               />
             </button>
-            <ul className={`space-y-2.5 text-xs text-neutral-500 font-sans ${discoverOpen ? 'block pt-1 pb-3' : 'hidden md:block'}`}>
+            <ul
+              className={`space-y-2.5 text-xs text-neutral-500 font-sans ${
+                discoverOpen ? 'block pt-1 pb-3' : 'hidden md:block'
+              }`}
+            >
               {discoverLinks.map((item) => (
                 <li key={item.title}>
-                  <Link href={item.href} className="hover:text-neutral-900 transition-colors block py-0.5 md:py-0">
+                  <Link
+                    href={item.href}
+                    className="hover:text-neutral-900 transition-colors block py-0.5 md:py-0"
+                  >
                     {item.title}
                   </Link>
                 </li>
@@ -139,54 +129,22 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 4: Join the Secret */}
-          <div className="lg:col-span-3">
-            <h4 className="text-xs uppercase tracking-widest font-semibold text-neutral-900 mb-2 font-sans">
-              Join the secret
-            </h4>
-            <p className="text-xs text-neutral-500 mb-3.5 leading-relaxed font-sans">
-              Be the first to know about new releases, styling ideas, and more.
+          {/* Col 4: Brand Statement */}
+          <div className="lg:col-span-3 lg:border-l lg:border-neutral-200/80 lg:pl-8 flex flex-col justify-center">
+            <p className="text-[11px] sm:text-xs uppercase tracking-[0.14em] font-semibold text-neutral-800 leading-[1.7] font-sans">
+              A SMALL STEP
+              <br />
+              TOWARDS A BRIGHTER
+              <br />
+              TOMORROW.
             </p>
-            {subscribed ? (
-              <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 p-2.5 rounded-lg border border-green-200">
-                <Check className="w-4 h-4" />
-                <span>Welcome to the MEOW secret list.</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubscribe} className="relative">
-                <div className="flex items-center bg-[#FAF9F6] border border-neutral-200 rounded-lg px-3.5 py-2.5 focus-within:border-neutral-900 transition-colors">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                    className="bg-transparent text-xs text-neutral-900 placeholder:text-neutral-400 outline-none w-full font-sans"
-                  />
-                  <button type="submit" aria-label="Submit email" className="text-neutral-400 hover:text-neutral-800 ml-1 flex-shrink-0">
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </form>
-            )}
+            <div className="w-8 h-[1.5px] bg-[#B89B7A] mt-3.5" />
           </div>
         </div>
 
-        {/* Bottom bar matching reference screenshot */}
+        {/* Bottom bar */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between text-[11px] text-neutral-400 gap-4 font-sans text-center md:text-left">
           <p>© 2026 MEOW All rights reserved.</p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-            <Link href="/privacy" className="hover:text-neutral-700 transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-neutral-700 transition-colors">
-              Terms & Conditions
-            </Link>
-            <Link href="/shipping" className="hover:text-neutral-700 transition-colors">
-              Shipping & Returns
-            </Link>
-          </div>
 
           <div className="flex items-center gap-4 text-neutral-500">
             <a

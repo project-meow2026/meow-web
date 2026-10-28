@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { Product, ProductVariant } from '@/lib/supabase/types';
 import { formatPrice } from '@/lib/utils/formatters';
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary/upload';
 import { useWishlist } from '@/context/WishlistContext';
 import { useCart } from '@/context/CartContext';
 
@@ -63,10 +64,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <Link href={`/product/${product.slug}`} className="block w-full h-full">
           {displayImage ? (
             <img
-              src={displayImage}
+              src={optimizeCloudinaryUrl(displayImage, 700)}
               alt={product.name}
               className="w-full h-full object-cover object-center select-none"
-              loading="lazy"
+              loading="eager"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-b from-[#FAF9F6] to-[#ECE8E1]">
