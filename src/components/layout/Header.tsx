@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, Heart, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { dbService } from '@/lib/storage/db';
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary/upload';
+import { formatPrice } from '@/lib/utils/formatters';
+import { Product } from '@/lib/supabase/types';
 import { MobileNav } from './MobileNav';
 
 export const Header: React.FC = () => {
@@ -17,6 +21,8 @@ export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +31,74 @@ export const Header: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    dbService
+      .getProducts()
+      .then((list) => setProducts(list || []))
+      .catch(() => {});
+  }, [searchOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchOpen &&
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node)
+      ) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchOpen]);
+
+  const matchingProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    const scored = products
+      .map((p) => {
+        const name = (p.name || '').toLowerCase();
+        const cat = (p.category?.name || '').toLowerCase();
+        const desc = (p.description || '').toLowerCase();
+        const colors = (p.variants || [])
+          .map((v) => (v.color_name || '').toLowerCase())
+          .join(' ');
+        const haystack = `${name} ${cat} ${desc} ${colors}`;
+
+        let score = 0;
+        if (name.startsWith(q)) score += 100;
+        else if (name.includes(q)) score += 75;
+        if (cat.includes(q)) score += 40;
+
+        for (const token of tokens) {
+          if (name.includes(token)) score += 30;
+          else if (haystack.includes(token)) score += 15;
+          else if (token.length >= 3) {
+            // Prefix or fuzzy match for similar words
+            const words = haystack.split(/\W+/);
+            if (words.some((w) => w.startsWith(token.slice(0, 3)) || token.startsWith(w.slice(0, 3)))) {
+              score += 8;
+            }
+          }
+        }
+
+        return { product: p, score };
+      })
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    return scored.slice(0, 6).map((s) => s.product);
+  }, [products, searchQuery]);
+
+  const getProductThumb = (p: Product): string => {
+    const primary = p.primary_image_url;
+    const firstImg = p.images?.[0]?.image_url;
+    const variantImg = p.variants?.[0]?.miniature_image_url;
+    return optimizeCloudinaryUrl(primary || firstImg || variantImg || '', 200);
+  };
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -37,6 +111,7 @@ export const Header: React.FC = () => {
   return (
     <>
       <header
+        ref={searchContainerRef}
         className={`sticky top-0 z-40 w-full transition-all duration-300 ${
           isScrolled
             ? 'bg-white shadow-sm border-b border-meow-border'
@@ -141,38 +216,111 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Search Dropdown */}
+        {/* Quick Search Input + Live Product Suggestions Dropdown */}
         {searchOpen && (
-          <div className="border-t border-meow-border bg-white px-4 py-3 animate-fade-in-up">
-            <div className="max-w-2xl mx-auto flex items-center gap-3">
-              <Search className="w-4 h-4 text-meow-muted" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search MEOW footwear by style, collection, or color..."
-                className="w-full text-sm outline-none bg-transparent placeholder:text-meow-subtle"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && searchQuery.trim()) {
-                    window.location.href = `/shop?q=${encodeURIComponent(searchQuery.trim())}`;
-                  }
-                }}
-              />
-              {searchQuery && (
+          <div className="relative border-t border-meow-border bg-white px-4 py-3 shadow-lg animate-fade-in-up">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex items-center gap-3">
+                <Search className="w-4 h-4 text-meow-muted shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search MEOW footwear by product name, style, or collection..."
+                  className="w-full text-sm outline-none bg-transparent placeholder:text-meow-subtle"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      setSearchOpen(false);
+                      window.location.href = `/shop?q=${encodeURIComponent(searchQuery.trim())}`;
+                    }
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="text-xs text-meow-subtle hover:text-meow-dark shrink-0"
+                  >
+                    Clear
+                  </button>
+                )}
                 <button
-                  onClick={() => setSearchQuery('')}
-                  className="text-xs text-meow-subtle hover:text-meow-dark"
+                  onClick={() => setSearchOpen(false)}
+                  className="p-1 text-meow-muted hover:text-meow-dark shrink-0"
                 >
-                  Clear
+                  <X className="w-4 h-4" />
                 </button>
+              </div>
+
+              {/* Live Matching Products Dropdown */}
+              {searchQuery.trim().length > 0 && (
+                <div className="mt-3 pt-3 border-t border-meow-border/70 max-h-80 overflow-y-auto">
+                  {matchingProducts.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] uppercase tracking-widest text-meow-subtle font-semibold px-2 block mb-1">
+                        Matching Products ({matchingProducts.length})
+                      </span>
+                      {matchingProducts.map((product) => {
+                        const thumb = getProductThumb(product);
+                        const price = product.sale_price || product.price;
+                        return (
+                          <Link
+                            key={product.id || product.slug}
+                            href={`/product/${product.slug}`}
+                            onClick={() => {
+                              setSearchOpen(false);
+                              setSearchQuery('');
+                            }}
+                            className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#FAF9F6] transition-colors group"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-11 h-11 rounded-md overflow-hidden bg-[#F5F2EC] border border-meow-border shrink-0 flex items-center justify-center">
+                                {thumb ? (
+                                  <img
+                                    src={thumb}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-[9px] font-bold text-meow-subtle">MEOW</span>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-meow-dark truncate group-hover:underline">
+                                  {product.name}
+                                </p>
+                                {product.category?.name && (
+                                  <p className="text-[10px] text-meow-subtle truncate">
+                                    {product.category.name}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs font-semibold text-meow-dark">
+                                {formatPrice(price)}
+                              </span>
+                              <ArrowRight className="w-3.5 h-3.5 text-meow-subtle group-hover:translate-x-0.5 transition-transform" />
+                            </div>
+                          </Link>
+                        );
+                      })}
+                      <Link
+                        href={`/shop?q=${encodeURIComponent(searchQuery.trim())}`}
+                        onClick={() => setSearchOpen(false)}
+                        className="mt-2 pt-2 border-t border-meow-border/60 flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-meow-dark hover:text-meow-muted py-1.5"
+                      >
+                        <span>View all results for &ldquo;{searchQuery.trim()}&rdquo;</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="py-4 text-center text-xs text-meow-muted">
+                      No matching products found for &ldquo;{searchQuery.trim()}&rdquo;.
+                    </div>
+                  )}
+                </div>
               )}
-              <button
-                onClick={() => setSearchOpen(false)}
-                className="p-1 text-meow-muted hover:text-meow-dark"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
           </div>
         )}

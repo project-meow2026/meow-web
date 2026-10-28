@@ -13,10 +13,13 @@ import {
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { dbService, INITIAL_ABOUT_SECTION } from '@/lib/storage/db';
+import { optimizeCloudinaryUrl } from '@/lib/cloudinary/upload';
 import { AboutSection } from '@/lib/supabase/types';
 
 export default function AboutPage() {
-  const [content, setContent] = useState<AboutSection>(INITIAL_ABOUT_SECTION);
+  const [content, setContent] = useState<AboutSection>(() =>
+    dbService.getAboutSectionSync()
+  );
 
   useEffect(() => {
     async function loadAbout() {
@@ -72,8 +75,11 @@ export default function AboutPage() {
         <section className="relative min-h-[340px] sm:min-h-[440px] lg:min-h-[520px] flex items-center bg-[#E8DFD1] overflow-hidden">
           {content.banner_image_url && (
             <img
-              src={content.banner_image_url}
+              src={optimizeCloudinaryUrl(content.banner_image_url, 1800)}
               alt={content.heading || 'Our Story'}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover object-[65%_center] sm:object-center"
             />
           )}
@@ -102,8 +108,11 @@ export default function AboutPage() {
                 <div className="aspect-[4/3.6] sm:aspect-[1/1.02] w-full overflow-hidden bg-[#EFECE6] border border-[#E5E0D6] flex items-center justify-center">
                   {content.craft_image_url ? (
                     <img
-                      src={content.craft_image_url}
+                      src={optimizeCloudinaryUrl(content.craft_image_url, 1000)}
                       alt={content.craft_heading || 'About MEOW Craftsmanship'}
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
                       className="w-full h-full object-cover object-center"
                     />
                   ) : (
@@ -196,8 +205,10 @@ export default function AboutPage() {
                 <div className="relative w-full h-full aspect-[4/3] sm:aspect-auto sm:min-h-[300px] overflow-hidden bg-[#2A211B] border border-[#E5E0D6] flex items-end">
                   {content.values_image_url && (
                     <img
-                      src={content.values_image_url}
+                      src={optimizeCloudinaryUrl(content.values_image_url, 1000)}
                       alt={content.values_image_caption || 'Tradition Meets Modern Style'}
+                      loading="eager"
+                      decoding="async"
                       className="absolute inset-0 w-full h-full object-cover object-center"
                     />
                   )}
@@ -219,8 +230,10 @@ export default function AboutPage() {
           {content.vision_image_url && (
             <>
               <img
-                src={content.vision_image_url}
+                src={optimizeCloudinaryUrl(content.vision_image_url, 1600)}
                 alt="Our Vision and Mission"
+                loading="eager"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover object-center opacity-85"
               />
               <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-[#140E0A]/60 via-[#18120E]/40 to-[#140E0A]/60 pointer-events-none" />

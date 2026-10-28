@@ -1,0 +1,61 @@
+{
+  "hero_badge": "COLLECTIONS",
+  "hero_heading": "The Six\nCollections",
+  "hero_subtitle": "Engineered comfort categories tailored for women and kids, built around natural anatomy and modern-minimal styling.",
+  "hero_accent": "DISCOVER YOUR EVERYDAY PAIR",
+  "hero_image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793179937/meow/collections/ckc4jth7nnk3kc3psnhs.png",
+  "cards": [
+    {
+      "id": "c1-eva-women",
+      "number": "01",
+      "title": "EVA for\nWomen",
+      "slug": "eva-for-women",
+      "description": "Featherlight, water-resistant everyday comfort crafted with ultra-cushioned high-rebound EVA footmolds.",
+      "image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793179068/meow/collections/c6bvsmdjdvnbvcftwgur.png"
+    },
+    {
+      "id": "c2-cork-women",
+      "number": "02",
+      "title": "Cork Inn\nfor Women",
+      "slug": "cork-inn-for-women",
+      "description": "Anatomically shaped natural cork footbeds paired with premium straps for all-day posture support.",
+      "image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793179083/meow/collections/jpxkpibcvtattz9vqhay.png"
+    },
+    {
+      "id": "c3-dd-women",
+      "number": "03",
+      "title": "Double Density\nfor Women",
+      "slug": "double-density-for-women",
+      "description": "Engineered dual-layer comfort combining high-density shock absorption with a pillowy soft top layer.",
+      "image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793179216/meow/collections/usxpcjwjwyw3zcmfde9f.png"
+    },
+    {
+      "id": "c4-eva-kids",
+      "number": "04",
+      "title": "EVA for Kids",
+      "slug": "eva-for-kids",
+      "description": "Super-light, washable and flexible slip-ons designed to keep little feet active and happy.",
+      "image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793179385/meow/collections/bvkgt6mzykokz9s4gjo3.png"
+    },
+    {
+      "id": "c5-cork-kids",
+      "number": "05",
+      "title": "Cork Inn\nfor Kids",
+      "slug": "cork-inn-kids",
+      "description": "Natural cork footbeds with breathable straps for growing feet. Comfort and support in every step.",
+      "image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793179436/meow/collections/hdhtanwfam3itogbpriu.png"
+    },
+    {
+      "id": "c6-magic-kids",
+      "number": "06",
+      "title": "Magic Craft\nfor Kids",
+      "slug": "magic-craft-for-kids",
+      "description": "Playful textures, fun designs and all-day comfort to make every adventure more enjoyable.",
+      "image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793179482/meow/collections/cp3u45oztmbpg6guiavt.png"
+    }
+  ],
+  "philosophy_badge": "OUR PHILOSOPHY",
+  "philosophy_heading": "MADE FOR\nEVERY STEP.",
+  "philosophy_body": "Thoughtful materials, refined details and all-day comfort — designed to move with you.",
+  "philosophy_image_url": "https://res.cloudinary.com/k7t4skr1/image/upload/v1793180976/meow/collections/of5rzfiqwxaafmrln6xq.png"
+}

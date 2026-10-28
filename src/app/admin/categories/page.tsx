@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Eye, Check, X, FolderTree } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, Edit2, Trash2, Eye, Check, X, FolderTree, LayoutGrid } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 import { SketchIllustration } from '@/components/common/SketchIllustration';
@@ -80,15 +81,24 @@ export default function AdminCategoriesPage() {
     <div>
       <AdminHeader
         title="Category & Collection Management"
-        description="Configure the 6 MEOW collections, circular pencil-sketch illustrations, and display orders."
+        description="Configure the 6 MEOW homepage circular categories, or open Collections Page CMS to manage the /collections page banners and 6 cards."
         actionButton={
-          <button
-            onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-meow-dark text-white text-xs uppercase tracking-wider font-semibold rounded hover:bg-meow-dark/85 shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Collection</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/collections"
+              className="flex items-center gap-2 px-3.5 py-2 border border-meow-border bg-white text-meow-dark text-xs uppercase tracking-wider font-semibold rounded hover:bg-meow-surface transition-colors"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>Collections Page CMS</span>
+            </Link>
+            <button
+              onClick={handleOpenAdd}
+              className="flex items-center gap-2 px-4 py-2 bg-meow-dark text-white text-xs uppercase tracking-wider font-semibold rounded hover:bg-meow-dark/85 shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Collection</span>
+            </button>
+          </div>
         }
       />
 

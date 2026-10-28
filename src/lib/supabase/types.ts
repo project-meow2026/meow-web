@@ -171,6 +171,28 @@ export interface AboutSection {
   }>;
 }
 
+export interface CollectionCardItem {
+  id: string;
+  number: string;
+  title: string;
+  slug: string;
+  description: string;
+  image_url: string | null;
+}
+
+export interface CollectionsPageSetting {
+  hero_badge: string;
+  hero_heading: string;
+  hero_subtitle: string;
+  hero_accent: string;
+  hero_image_url: string | null;
+  cards: CollectionCardItem[];
+  philosophy_badge: string;
+  philosophy_heading: string;
+  philosophy_body: string;
+  philosophy_image_url: string | null;
+}
+
 export interface OrderItem {
   id?: string;
   order_id?: string;
