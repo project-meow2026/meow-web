@@ -316,10 +316,10 @@ function ShopContent({ initialHero, initialProducts }: ShopClientProps) {
 
         {/* Content Container */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Filter Sidebar (Desktop) - Scrolls naturally with the products */}
-            <div className="hidden lg:block lg:col-span-3">
-              <div className="pr-3 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Filter Sidebar (Desktop) - Sticks and scrolls alongside products down the page */}
+            <div className="hidden lg:block lg:col-span-3 self-start sticky top-24">
+              <div className="max-h-[calc(100vh-7rem)] overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-3 pb-8">
                 <FilterSidebar
                   categories={categories}
                   filters={filters}

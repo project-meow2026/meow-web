@@ -23,12 +23,15 @@ import {
   Heart,
   Save,
   Check,
+  LogOut,
+  ShieldCheck,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { dbService } from '@/lib/storage/db';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { Order, OrderStatus } from '@/lib/supabase/types';
 import { formatPrice, formatDate } from '@/lib/utils/formatters';
 import { getWhatsAppRedirectUrl } from '@/lib/utils/whatsapp';
@@ -71,6 +74,8 @@ export default function CustomerProfilePage() {
     country: 'India',
   });
   const [profileSavedToast, setProfileSavedToast] = useState(false);
+  const [authUser, setAuthUser] = useState<{ email?: string; id?: string } | null>(null);
+  const [logoutToast, setLogoutToast] = useState(false);
 
   const indianStates = [
     'Andhra Pradesh',
@@ -157,10 +162,59 @@ export default function CustomerProfilePage() {
       } finally {
         setLoadingOrders(false);
       }
+
+      // Check active Supabase authenticated user
+      try {
+        if (isSupabaseConfigured() && supabase) {
+          const { data } = await supabase.auth.getSession();
+          if (data?.session?.user) {
+            setAuthUser({
+              email: data.session.user.email,
+              id: data.session.user.id,
+            });
+          }
+        }
+      } catch (_) {}
     }
 
     initProfileAndOrders();
   }, []);
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to log out and clear your saved profile details from this device?'
+    );
+    if (!confirmed) return;
+
+    try {
+      if (isSupabaseConfigured() && supabase) {
+        await supabase.auth.signOut().catch(() => {});
+      }
+      setAuthUser(null);
+
+      // Clear stored customer profile & orders cache
+      localStorage.removeItem('meow_customer_profile_v1');
+      sessionStorage.clear();
+
+      setProfile({
+        fullName: '',
+        phoneNumber: '',
+        whatsappNumber: '',
+        emailAddress: '',
+        address: '',
+        city: '',
+        state: 'Kerala',
+        pincode: '',
+        country: 'India',
+      });
+      setOrders([]);
+
+      setLogoutToast(true);
+      setTimeout(() => setLogoutToast(false), 5000);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   const handleLookupOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -355,8 +409,31 @@ export default function CustomerProfilePage() {
                   <span>Wishlist ({wishlistCount})</span>
                 </Link>
               )}
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-full text-xs font-medium border border-red-200 text-red-600 bg-red-50/50 hover:bg-red-100 transition-all flex items-center gap-1.5"
+                title="Log out and clear profile details"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Log Out</span>
+              </button>
             </div>
           </div>
+
+          {/* Logout Toast Notification */}
+          {logoutToast && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-900 text-xs rounded-lg flex items-center justify-between gap-3 animate-fade-in-up">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <span>You have been logged out and your saved profile details have been cleared.</span>
+              </div>
+              <Link href="/" className="underline font-semibold hover:text-green-950 shrink-0">
+                Back to Shop
+              </Link>
+            </div>
+          )}
 
           {/* Main Content Area */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
@@ -426,7 +503,44 @@ export default function CustomerProfilePage() {
                   </span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
+
+                {/* Log Out Option in Account Sections */}
+                <div className="pt-2 border-t border-meow-border mt-2">
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-xs uppercase tracking-wider font-semibold text-red-600 hover:bg-red-50 transition-all group"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <LogOut className="w-4 h-4 text-red-500 group-hover:translate-x-0.5 transition-transform" />
+                      <span>Log Out</span>
+                    </span>
+                    <span className="text-[10px] text-red-500/80 font-sans normal-case">Exit session</span>
+                  </button>
+                </div>
               </div>
+
+              {/* Admin Access Shortcut if an authorized account is active */}
+              {authUser && (
+                <div className="border border-[#E8E1D5] rounded-xl p-4.5 bg-[#FAF9F5] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-[#8C6D4F]">
+                      Signed in Account
+                    </span>
+                    <ShieldCheck className="w-4 h-4 text-[#8C6D4F]" />
+                  </div>
+                  <p className="text-xs font-mono text-meow-dark truncate">
+                    {authUser.email}
+                  </p>
+                  <Link
+                    href="/admin"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8C6D4F] hover:underline pt-0.5"
+                  >
+                    <span>Store Admin CMS</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
 
               {/* Saved Customer Details Summary Card */}
               <div className="border border-meow-border rounded-xl p-6 bg-white space-y-4">
@@ -1006,13 +1120,22 @@ export default function CustomerProfilePage() {
                       </div>
                     </div>
 
-                    <div className="pt-3">
+                    <div className="pt-3 flex flex-wrap items-center gap-3">
                       <button
                         type="submit"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-meow-dark text-white text-xs uppercase tracking-widest font-semibold rounded hover:bg-meow-dark/90 transition-colors"
                       >
                         <Save className="w-4 h-4" />
                         <span>Save Profile Details</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="inline-flex items-center gap-2 px-5 py-3 border border-red-200 text-red-600 bg-red-50/50 hover:bg-red-100 text-xs uppercase tracking-widest font-semibold rounded transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Log Out / Clear</span>
                       </button>
                     </div>
                   </form>
