@@ -71,7 +71,7 @@ export default function AboutClient({ initialContent }: { initialContent: AboutS
 
       <main className="bg-[#FAF8F5] min-h-screen overflow-x-hidden">
         {/* SECTION 1: TOP HERO BANNER */}
-        <section className="relative min-h-[360px] sm:min-h-[460px] lg:min-h-[520px] flex items-center bg-[#E8DFD1] overflow-hidden">
+        <section className="relative min-h-[380px] sm:min-h-[460px] lg:min-h-[520px] flex items-center bg-[#E8DFD1] overflow-hidden">
           {content.banner_image_url && (
             <img
               src={optimizeCloudinaryUrl(content.banner_image_url, 1800)}
@@ -83,16 +83,17 @@ export default function AboutClient({ initialContent }: { initialContent: AboutS
             />
           )}
 
-          <div className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-10 lg:px-14 py-14 sm:py-20 lg:py-24">
-            <div className="max-w-[85%] sm:max-w-xl space-y-3 sm:space-y-4">
-              <span className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-[#2B2520] font-sans font-semibold block">
+          <div className="relative z-10 max-w-7xl mx-auto w-full px-4 xs:px-5 sm:px-10 lg:px-14 py-8 sm:py-20 lg:py-24">
+            {/* Elegant luxury frosted card on mobile: guarantees 100% text visibility without a washed-out photo */}
+            <div className="max-w-full sm:max-w-xl space-y-3 sm:space-y-4 bg-[#FAF8F5]/90 backdrop-blur-md p-5 xs:p-6 sm:p-0 rounded-lg sm:rounded-none sm:bg-transparent sm:backdrop-blur-none border border-[#E8E1D5]/80 sm:border-0 shadow-sm sm:shadow-none">
+              <span className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-[#8C6D4F] font-sans font-semibold block">
                 {content.tagline || 'ABOUT US • EST. 1994'}
               </span>
-              <h1 className="font-editorial text-3xl sm:text-5xl lg:text-[62px] font-normal text-[#1E1A17] tracking-tight leading-[1.05] uppercase whitespace-pre-line">
+              <h1 className="font-editorial text-2xl xs:text-3xl sm:text-5xl lg:text-[62px] font-normal text-[#1E1A17] tracking-tight leading-[1.08] sm:leading-[1.05] uppercase whitespace-pre-line">
                 {content.heading || 'THE PARISIAN\nART OF\nELEGANCE.'}
               </h1>
               <div className="w-8 sm:w-10 h-[1.5px] bg-[#9E7B56] my-2 sm:my-3" />
-              <p className="text-xs sm:text-[15px] text-[#3A332C] font-sans leading-[1.65] sm:leading-[1.7] max-w-sm sm:max-w-md pt-0.5">
+              <p className="text-xs sm:text-[15px] text-[#3A332C] font-sans leading-[1.65] sm:leading-[1.7] max-w-md pt-0.5">
                 {content.story_summary}
               </p>
             </div>
@@ -229,17 +230,24 @@ export default function AboutClient({ initialContent }: { initialContent: AboutS
                     return (
                       <div
                         key={val.title || idx}
-                        className="rounded-xl bg-[#FAF9F6] border border-[#E8E3DA] p-4.5 sm:p-5 flex flex-col justify-start space-y-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-all hover:border-[#D6CEC1]"
+                        className="rounded-xl bg-[#FAF9F6] border border-[#E8E3DA] p-4 sm:p-5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all hover:border-[#D6CEC1] hover:shadow-[0_4px_12px_rgba(0,0,0,0.04)] h-full"
                       >
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F1EDE4] flex items-center justify-center text-[#2B2520]">
-                          <IconComponent className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[1.5]" />
+                        <div className="space-y-2.5">
+                          {/* Header row: Icon + Title aligned cleanly */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F1EDE4] border border-[#E6E0D6] flex items-center justify-center text-[#2B2520] shrink-0">
+                              <IconComponent className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[1.5]" />
+                            </div>
+                            <h3 className="text-xs sm:text-[12.5px] font-bold uppercase tracking-[0.08em] text-[#1E1A17] leading-tight">
+                              {val.title}
+                            </h3>
+                          </div>
+
+                          {/* Description text with refined alignment and line-height */}
+                          <p className="text-xs sm:text-[12px] text-[#5C544D] leading-[1.65] font-sans">
+                            {val.description}
+                          </p>
                         </div>
-                        <h3 className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#1E1A17] pt-0.5 leading-snug">
-                          {val.title}
-                        </h3>
-                        <p className="text-[11.5px] sm:text-[12px] text-[#5C544D] leading-[1.6] font-sans">
-                          {val.description}
-                        </p>
                       </div>
                     );
                   })}

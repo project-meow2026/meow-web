@@ -36,7 +36,6 @@ export const Footer: React.FC = () => {
     { title: 'Collections', href: '/collections' },
     { title: 'All Products', href: '/shop' },
     { title: 'Contact Us', href: '/contact' },
-    { title: 'Store Admin CMS', href: '/admin' },
   ];
 
   const socials = [
@@ -186,7 +185,21 @@ export const Footer: React.FC = () => {
       {/* Bottom bar */}
       <div className="border-t border-[#E3DACD]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 text-[11px] text-[#8A8076] font-sans">
-          <p className="tracking-wide">© {new Date().getFullYear()} MEOW. All rights reserved.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+            <p className="tracking-wide">© {new Date().getFullYear()} MEOW. All rights reserved.</p>
+            <span className="hidden sm:inline text-[#D9CDBD]">•</span>
+            <p className="tracking-wide text-[#6E655C]">
+              Crafted by{' '}
+              <a
+                href="https://ekodrix.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-[#3A332C] hover:text-[#1E1A17] hover:underline underline-offset-2 transition-colors"
+              >
+                Ekodrix
+              </a>
+            </p>
+          </div>
           <button
             type="button"
             onClick={scrollToTop}
