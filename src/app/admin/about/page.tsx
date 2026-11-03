@@ -94,7 +94,7 @@ export default function AdminAboutPage() {
           <div className="pb-3 border-b border-meow-border flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark">
-                1. Top Hero Story Banner (&ldquo;CRAFTED FOR A BOLDER YOU.&rdquo;)
+                1. Top Hero Story Banner (&ldquo;THE PARISIAN ART OF ELEGANCE.&rdquo;)
               </h2>
               <p className="text-xs text-meow-muted mt-0.5">
                 Full-width top hero banner with left-aligned story text and your uploaded sandal hero photo.
@@ -167,7 +167,7 @@ export default function AdminAboutPage() {
         <div className="border border-meow-border rounded-xl p-6 sm:p-8 bg-white shadow-sm space-y-6">
           <div className="pb-3 border-b border-meow-border">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark">
-              2. About MEOW Section (&ldquo;EVERY STEP A STORY&rdquo;)
+              2. About MEOW Section (&ldquo;EXPERIENCE THE MAGIC OF CRAFTSMANSHIP&rdquo;)
             </h2>
             <p className="text-xs text-meow-muted mt-0.5">
               3-column section: Left close-up footwear photo, Center brand narrative, and Right 4 feature pillars.
@@ -208,12 +208,25 @@ export default function AdminAboutPage() {
 
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-meow-dark block mb-1.5">
-                  Story Description Paragraph
+                  Story Description — Part 1 (Design, Femininity &amp; Craft)
                 </label>
                 <textarea
                   rows={4}
                   value={content.craft_body}
                   onChange={(e) => setContent({ ...content, craft_body: e.target.value })}
+                  className="w-full text-xs p-3.5 rounded border border-meow-border bg-meow-surface focus:bg-white focus:border-meow-dark outline-none leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-meow-dark block mb-1.5">
+                  Story Description — Part 2 (Spirit of Paris &amp; Individuality)
+                </label>
+                <textarea
+                  rows={4}
+                  value={content.story_detail || ''}
+                  onChange={(e) => setContent({ ...content, story_detail: e.target.value })}
+                  placeholder="Extended story narrative..."
                   className="w-full text-xs p-3.5 rounded border border-meow-border bg-meow-surface focus:bg-white focus:border-meow-dark outline-none leading-relaxed"
                 />
               </div>
@@ -225,7 +238,7 @@ export default function AdminAboutPage() {
         <div className="border border-meow-border rounded-xl p-6 sm:p-8 bg-white shadow-sm space-y-6">
           <div className="pb-3 border-b border-meow-border">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-meow-dark">
-              3. Our Values (4 Cards on Left) &amp; Craftsmanship Image on Right (&ldquo;TRADITION MEETS MODERN STYLE&rdquo;)
+              3. Our Values (4 Cards on Left) &amp; Craftsmanship Image on Right (&ldquo;THE MAGIC OF CRAFTSMANSHIP&rdquo;)
             </h2>
             <p className="text-xs text-meow-muted mt-0.5">
               Left side displays the 4 value cards; Right side displays the artisan shoemaking photo with overlay caption.
