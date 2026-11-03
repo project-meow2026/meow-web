@@ -61,11 +61,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const payload = {
-      badge: body.badge || 'SPRING / SUMMER',
-      heading: body.heading || 'THE ART OF DRESSING WELL',
-      subtitle: body.subtitle || 'Quiet confidence. Timeless comfort.',
-      cta_text: body.cta_text || 'DISCOVER THE COLLECTION',
-      cta_link: body.cta_link || '/shop',
+      badge: body.badge ? body.badge.trim() : '',
+      heading: body.heading ? body.heading.trim() : '',
+      subtitle: body.subtitle ? body.subtitle.trim() : '',
+      cta_text: body.cta_text ? body.cta_text.trim() : '',
+      cta_link: body.cta_link ? body.cta_link.trim() : '/shop',
       desktop_video_url: body.desktop_video_url ? body.desktop_video_url.trim() : null,
       mobile_video_url: body.mobile_video_url ? body.mobile_video_url.trim() : null,
       poster_image_url: body.poster_image_url ? body.poster_image_url.trim() : null,

@@ -258,9 +258,9 @@ export default function AdminHeroPage() {
               </label>
               <input
                 type="text"
-                value={hero.badge}
+                value={hero.badge || ''}
                 onChange={(e) => setHero({ ...hero, badge: e.target.value })}
-                placeholder="e.g. SPRING / SUMMER"
+                placeholder="e.g. SPRING / SUMMER (or leave empty)"
                 className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border uppercase tracking-widest"
               />
             </div>
@@ -271,9 +271,9 @@ export default function AdminHeroPage() {
               </label>
               <input
                 type="text"
-                value={hero.heading}
+                value={hero.heading || ''}
                 onChange={(e) => setHero({ ...hero, heading: e.target.value })}
-                placeholder="e.g. THE ART OF DRESSING WELL"
+                placeholder="e.g. THE ART OF DRESSING WELL (or leave empty)"
                 className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border uppercase tracking-wide font-editorial"
               />
             </div>
@@ -285,9 +285,9 @@ export default function AdminHeroPage() {
             </label>
             <input
               type="text"
-              value={hero.subtitle}
+              value={hero.subtitle || ''}
               onChange={(e) => setHero({ ...hero, subtitle: e.target.value })}
-              placeholder="e.g. Quiet confidence. Timeless comfort."
+              placeholder="e.g. Quiet confidence. Timeless comfort. (or leave empty)"
               className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border"
             />
           </div>
@@ -299,9 +299,9 @@ export default function AdminHeroPage() {
               </label>
               <input
                 type="text"
-                value={hero.cta_text}
+                value={hero.cta_text || ''}
                 onChange={(e) => setHero({ ...hero, cta_text: e.target.value })}
-                placeholder="e.g. DISCOVER THE COLLECTION"
+                placeholder="e.g. DISCOVER THE COLLECTION (or leave empty)"
                 className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border"
               />
             </div>
@@ -312,7 +312,7 @@ export default function AdminHeroPage() {
               </label>
               <input
                 type="text"
-                value={hero.cta_link}
+                value={hero.cta_link || ''}
                 onChange={(e) => setHero({ ...hero, cta_link: e.target.value })}
                 placeholder="/shop"
                 className="w-full text-xs px-3.5 py-2.5 rounded border border-meow-border font-mono"
